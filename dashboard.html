@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AI-Powered Digital Twin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <script src="navigation.js"></script>
+
+    <div class="dashboard-wrapper">
+        <!-- Page Header -->
+        <header class="page-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">Dashboard Overview</h1>
+                    <p class="page-subtitle">AI-Powered Employee Productivity Dashboard</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <main class="dashboard-main">
+            <!-- Loading & Error Messages -->
+            <div id="loadingMessage" class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>Loading employee data...</p>
+            </div>
+            <div id="errorMessage" class="error-container" style="display: none;"></div>
+
+            <!-- Statistics Cards -->
+            <div id="dashboardStats" style="display: none;" class="stats-grid">
+                <div class="glass-card stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalEmployees">0</div>
+                        <div class="stat-label">Total Employees</div>
+                    </div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="highProductivity">0</div>
+                        <div class="stat-label">High Productivity</div>
+                    </div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="highBurnoutRisk">0</div>
+                        <div class="stat-label">High Burnout Risk</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Organization Health Snapshot -->
+            <div id="healthSnapshot" style="display: none;" class="health-snapshot-section">
+                <div class="health-header">
+                    <h2 class="health-title">Organization Health Snapshot</h2>
+                </div>
+                <div class="health-grid">
+                    <div class="glass-card health-card">
+                        <div class="health-icon health-icon-productivity">📊</div>
+                        <div class="health-content">
+                            <div class="health-label">Avg Productivity Score</div>
+                            <div class="health-value" id="avgProductivity">0.0</div>
+                            <div class="health-indicator" id="productivityIndicator"></div>
+                        </div>
+                    </div>
+                    <div class="glass-card health-card">
+                        <div class="health-icon health-icon-burnout">⚠️</div>
+                        <div class="health-content">
+                            <div class="health-label">High Burnout Risk</div>
+                            <div class="health-value" id="burnoutPercentage">0%</div>
+                            <div class="health-indicator" id="burnoutIndicator"></div>
+                        </div>
+                    </div>
+                    <div class="glass-card health-card">
+                        <div class="health-icon health-icon-stress">😰</div>
+                        <div class="health-content">
+                            <div class="health-label">Avg Stress Level</div>
+                            <div class="health-value" id="avgStress">0.0</div>
+                            <div class="health-indicator" id="stressIndicator"></div>
+                        </div>
+                    </div>
+                    <div class="glass-card health-card">
+                        <div class="health-icon health-icon-balance">⚖️</div>
+                        <div class="health-content">
+                            <div class="health-label">Avg Work-Life Balance</div>
+                            <div class="health-value" id="avgBalance">0.0</div>
+                            <div class="health-indicator" id="balanceIndicator"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Attention Required -->
+            <div id="criticalAttention" style="display: none;" class="glass-card critical-attention-section">
+                <div class="critical-header">
+                    <div class="critical-title-wrapper">
+                        <div class="critical-icon">🚨</div>
+                        <h2 class="critical-title">Critical Attention Required</h2>
+                    </div>
+                    <div class="critical-count" id="criticalCount">0 employees</div>
+                </div>
+                <div class="critical-list" id="criticalList">
+                    <!-- Critical employees will be inserted here by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Compact Digital Twin Summary -->
+            <div id="digitalTwinSection" style="display: none;" class="glass-card digital-twin-card">
+                <div class="card-header">
+                    <h2 class="card-title">Digital Twin Summary</h2>
+                    <span class="ml-badge">Rule-Based (ML-Ready)</span>
+                    <a href="ai-insights.html" class="view-more-link">View Full Analysis →</a>
+                </div>
+                <div class="twin-labels" id="twinLabels">
+                    <!-- Labels will be inserted here by JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Employee Detail Modal -->
+    <div id="employeeModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Employee Details</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Employee details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Load CSV data when dashboard page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            loadCSVData();
+        });
+    </script>
+</body>
+</html>

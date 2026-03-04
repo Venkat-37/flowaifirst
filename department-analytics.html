@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Analytics - AI-Powered Digital Twin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <script src="navigation.js"></script>
+
+    <div class="dashboard-wrapper">
+        <!-- Page Header -->
+        <header class="page-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">Department Analytics</h1>
+                    <p class="page-subtitle">Performance Overview by Department</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Loading & Error Messages -->
+            <div id="loadingMessage" class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>Loading employee data...</p>
+            </div>
+            <div id="errorMessage" class="error-container" style="display: none;"></div>
+
+            <!-- Department Performance Overview -->
+            <div id="departmentOverview" style="display: none;" class="glass-card department-overview-section">
+                <div class="department-header">
+                    <h2 class="department-title">Department Performance Overview</h2>
+                </div>
+                <div class="department-grid" id="departmentGrid">
+                    <!-- Department cards will be inserted here by JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Load CSV data when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            loadCSVData();
+        });
+    </script>
+</body>
+</html>

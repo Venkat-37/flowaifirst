@@ -1,0 +1,301 @@
+Employee_ID,Department,Job_Level,Work_Hours_Per_Week,Meetings_Per_Week,WFH_Days_Per_Week,Productivity_Score,Stress_Level,Work_Life_Balance
+EMP001,Product,Junior,44.7,6,2,80,3,8
+EMP002,DevOps,Senior,43.4,9,3,60,7,3
+EMP003,QA,Mid,39.1,6,1,79,3,7
+EMP004,IT Support,Junior,46.1,11,4,72,1,10
+EMP005,Product,Senior,41.9,6,3,72,5,6
+EMP006,Engineering,Senior,31.9,11,5,55,7,3
+EMP007,Product,Senior,46.7,9,3,53,8,2
+EMP008,Product,Mid,35.7,7,2,61,7,3
+EMP009,QA,Mid,45.5,9,4,72,4,5
+EMP010,IT Support,Junior,45.9,11,1,72,3,6
+EMP011,IT Support,Senior,32.6,9,3,71,2,9
+EMP012,DevOps,Senior,37.8,8,1,67,4,6
+EMP013,IT Support,Senior,34.1,4,1,73,6,5
+EMP014,DevOps,Junior,37.3,8,3,70,6,3
+EMP015,QA,Junior,42.8,2,4,82,4,5
+EMP016,IT Support,Senior,46.4,5,5,60,9,2
+EMP017,Product,Mid,34.7,6,4,74,6,4
+EMP018,Product,Junior,38.5,10,3,71,4,6
+EMP019,Product,Junior,28.7,6,1,77,5,6
+EMP020,Product,Senior,39.6,9,1,68,3,6
+EMP021,QA,Mid,47.4,6,1,62,7,2
+EMP022,QA,Mid,39.8,2,1,80,4,7
+EMP023,IT Support,Mid,47.7,2,5,78,6,4
+EMP024,DevOps,Senior,37,4,4,81,3,8
+EMP025,DevOps,Mid,34.2,8,4,64,5,4
+EMP026,QA,Junior,47.8,3,2,77,6,5
+EMP027,Product,Mid,42.1,2,2,80,5,4
+EMP028,IT Support,Senior,39,4,3,85,3,7
+EMP029,Engineering,Senior,46.3,10,3,52,8,1
+EMP030,QA,Mid,47.2,10,4,57,7,2
+EMP031,Engineering,Mid,47.8,9,3,68,3,6
+EMP032,Product,Senior,35.2,7,5,77,3,8
+EMP033,DevOps,Senior,42.1,2,5,72,7,2
+EMP034,Product,Senior,41.9,6,3,72,5,4
+EMP035,IT Support,Junior,52.6,2,4,71,8,3
+EMP036,Engineering,Senior,43.1,7,2,82,2,9
+EMP037,QA,Senior,47.3,2,1,81,5,4
+EMP038,IT Support,Mid,44.6,10,5,63,6,4
+EMP039,Engineering,Junior,39.2,4,4,76,4,6
+EMP040,DevOps,Junior,42.7,2,4,81,5,5
+EMP041,DevOps,Junior,49.8,6,4,71,5,5
+EMP042,DevOps,Senior,41.5,4,4,81,4,6
+EMP043,QA,Junior,50.9,2,2,82,3,7
+EMP044,QA,Mid,42.9,8,5,67,6,4
+EMP045,DevOps,Mid,48.3,10,5,70,3,7
+EMP046,Engineering,Mid,44.2,11,2,61,6,3
+EMP047,Product,Junior,52.6,11,2,65,4,6
+EMP048,Product,Mid,42,9,5,62,6,3
+EMP049,QA,Junior,43.7,5,4,69,6,4
+EMP050,Product,Junior,52.7,6,4,80,1,10
+EMP051,Engineering,Mid,38.7,3,5,81,3,8
+EMP052,DevOps,Senior,41,11,2,62,4,6
+EMP053,DevOps,Junior,51.8,3,5,84,4,7
+EMP054,Product,Junior,38.9,11,5,62,6,3
+EMP055,DevOps,Junior,38.9,2,5,82,5,4
+EMP056,IT Support,Senior,40,2,1,79,5,5
+EMP057,Engineering,Mid,39.1,5,4,81,4,5
+EMP058,DevOps,Junior,43.6,5,3,77,4,6
+EMP059,IT Support,Senior,47.6,6,4,62,9,1
+EMP060,Engineering,Senior,41.9,8,2,72,3,6
+EMP061,IT Support,Senior,46.4,2,5,82,5,5
+EMP062,IT Support,Mid,46.4,3,5,81,4,5
+EMP063,DevOps,Junior,47.8,8,1,70,4,5
+EMP064,Product,Mid,41.2,7,3,66,8,2
+EMP065,DevOps,Senior,34.1,3,4,86,4,6
+EMP066,Product,Junior,44.8,4,5,77,6,4
+EMP067,Product,Junior,42.3,6,2,78,3,6
+EMP068,IT Support,Senior,41.2,4,4,73,5,4
+EMP069,Engineering,Junior,39.8,6,3,67,8,3
+EMP070,DevOps,Mid,52.9,9,2,75,3,7
+EMP071,QA,Mid,38,5,3,79,2,8
+EMP072,Engineering,Junior,50.6,4,5,82,2,8
+EMP073,DevOps,Junior,35.4,9,2,57,8,3
+EMP074,Engineering,Mid,43.5,10,3,69,2,9
+EMP075,IT Support,Junior,29.7,2,5,87,3,8
+EMP076,Product,Junior,50.2,4,5,76,5,6
+EMP077,IT Support,Junior,38.8,6,1,62,7,3
+EMP078,DevOps,Junior,35.2,2,2,80,6,5
+EMP079,QA,Mid,49.8,3,4,79,5,4
+EMP080,Product,Junior,39.2,8,5,50,10,1
+EMP081,DevOps,Senior,43.2,3,2,72,6,4
+EMP082,DevOps,Senior,40.7,7,1,69,6,5
+EMP083,QA,Senior,46.8,11,1,55,6,4
+EMP084,Product,Junior,42,4,1,78,5,6
+EMP085,DevOps,Mid,37.5,5,1,69,6,5
+EMP086,DevOps,Junior,42.4,4,3,76,5,4
+EMP087,QA,Mid,41.5,11,2,76,2,7
+EMP088,IT Support,Senior,38.5,2,2,83,5,4
+EMP089,Engineering,Senior,39.3,9,2,75,3,8
+EMP090,QA,Junior,44,8,3,71,3,8
+EMP091,QA,Mid,34,10,5,66,5,5
+EMP092,Engineering,Junior,38.8,10,1,72,2,7
+EMP093,Engineering,Mid,42,5,2,71,7,4
+EMP094,Engineering,Senior,34.4,5,2,86,2,8
+EMP095,DevOps,Junior,44.5,6,5,76,4,6
+EMP096,Product,Mid,39,9,1,70,3,8
+EMP097,DevOps,Senior,43.4,7,2,72,4,7
+EMP098,Engineering,Mid,44.5,10,2,73,3,8
+EMP099,QA,Senior,39.8,11,4,61,5,6
+EMP100,Engineering,Junior,51.2,7,5,69,5,5
+EMP101,IT Support,Senior,33.4,9,2,62,7,2
+EMP102,QA,Mid,47,2,5,82,3,6
+EMP103,Engineering,Senior,53.9,4,1,79,3,6
+EMP104,IT Support,Senior,42.4,7,4,76,4,5
+EMP105,DevOps,Junior,45.8,4,5,73,6,3
+EMP106,DevOps,Senior,45.7,10,5,68,5,5
+EMP107,QA,Senior,44.8,7,1,66,5,6
+EMP108,Engineering,Junior,40.8,6,3,67,6,5
+EMP109,DevOps,Senior,46.6,5,5,67,7,2
+EMP110,DevOps,Junior,39.7,6,3,74,3,8
+EMP111,Product,Mid,41.7,11,1,54,8,2
+EMP112,IT Support,Senior,38.1,5,5,85,1,8
+EMP113,Product,Junior,46.3,4,4,70,7,3
+EMP114,Product,Senior,41.4,7,2,75,5,5
+EMP115,IT Support,Mid,40.7,9,4,68,4,7
+EMP116,Product,Junior,43.1,11,1,67,5,6
+EMP117,Engineering,Mid,40.4,11,4,67,4,6
+EMP118,Engineering,Junior,42.3,9,5,64,7,4
+EMP119,IT Support,Junior,45.1,11,1,67,3,8
+EMP120,Engineering,Mid,40.9,3,3,71,6,4
+EMP121,DevOps,Senior,36.4,9,1,68,4,7
+EMP122,IT Support,Junior,47.4,7,2,82,1,9
+EMP123,Engineering,Senior,41.8,5,4,77,5,6
+EMP124,Engineering,Senior,38.6,8,3,71,5,6
+EMP125,DevOps,Mid,39.1,9,3,68,3,7
+EMP126,DevOps,Senior,54.1,2,2,72,8,2
+EMP127,DevOps,Senior,40.5,8,3,79,3,7
+EMP128,DevOps,Mid,49.1,8,4,70,5,5
+EMP129,IT Support,Junior,33.9,8,3,71,5,6
+EMP130,Engineering,Senior,46.8,9,2,69,5,6
+EMP131,DevOps,Junior,40.6,8,2,82,2,9
+EMP132,Engineering,Senior,43.7,3,2,75,6,3
+EMP133,Product,Senior,38.5,8,4,77,2,7
+EMP134,Engineering,Mid,40.2,11,4,67,5,4
+EMP135,DevOps,Mid,35.3,3,3,85,4,5
+EMP136,QA,Junior,35.2,7,3,72,4,6
+EMP137,QA,Mid,43.5,6,3,66,6,4
+EMP138,IT Support,Mid,33.9,2,5,78,6,3
+EMP139,QA,Senior,37.5,9,2,76,3,6
+EMP140,IT Support,Senior,47.9,6,4,77,5,5
+EMP141,QA,Mid,40.3,5,3,74,5,5
+EMP142,DevOps,Senior,48.7,8,3,71,3,7
+EMP143,IT Support,Junior,43.5,4,3,84,1,10
+EMP144,DevOps,Junior,43.9,3,5,91,2,7
+EMP145,Engineering,Junior,51.9,11,1,63,4,7
+EMP146,DevOps,Mid,45.2,7,2,67,6,5
+EMP147,Product,Senior,41.6,9,3,63,6,5
+EMP148,Engineering,Senior,46.2,9,1,64,7,3
+EMP149,Product,Senior,40.6,11,2,58,5,6
+EMP150,QA,Junior,32.2,6,1,78,4,7
+EMP151,QA,Senior,41.8,5,3,76,6,4
+EMP152,Engineering,Mid,35,3,3,78,6,3
+EMP153,QA,Senior,49.2,9,1,79,1,8
+EMP154,Engineering,Junior,46.3,11,4,59,5,5
+EMP155,DevOps,Mid,39.8,4,3,84,2,9
+EMP156,IT Support,Mid,55,10,2,74,3,7
+EMP157,Product,Junior,32.7,3,4,81,4,6
+EMP158,Engineering,Junior,40.8,5,4,85,3,8
+EMP159,IT Support,Junior,44.8,8,3,77,1,9
+EMP160,Engineering,Senior,42.8,6,3,77,5,4
+EMP161,DevOps,Mid,39.9,11,3,65,4,6
+EMP162,IT Support,Mid,40.1,3,2,83,2,8
+EMP163,DevOps,Senior,38.5,10,1,70,3,7
+EMP164,QA,Senior,40.2,10,3,58,6,3
+EMP165,Product,Mid,44.7,6,3,63,7,4
+EMP166,Product,Senior,42.2,6,4,78,3,6
+EMP167,IT Support,Junior,46.5,4,2,72,5,6
+EMP168,DevOps,Junior,40.7,10,5,66,4,6
+EMP169,DevOps,Mid,43,11,1,67,4,7
+EMP170,QA,Mid,39.3,8,2,67,6,4
+EMP171,QA,Junior,43,2,2,78,5,4
+EMP172,DevOps,Mid,41.8,3,4,81,4,7
+EMP173,IT Support,Mid,42.9,3,4,74,5,6
+EMP174,Product,Mid,40.8,7,2,58,8,3
+EMP175,QA,Mid,39.2,8,5,64,5,6
+EMP176,DevOps,Senior,39.2,3,5,67,8,1
+EMP177,IT Support,Junior,44.2,5,2,79,3,8
+EMP178,DevOps,Senior,32.8,11,4,65,3,7
+EMP179,IT Support,Senior,42.4,3,4,84,4,7
+EMP180,Product,Mid,41.2,3,4,85,2,9
+EMP181,IT Support,Junior,41.2,8,1,76,2,8
+EMP182,Product,Junior,41.8,7,5,76,2,7
+EMP183,DevOps,Junior,41.4,3,3,91,2,7
+EMP184,Engineering,Mid,43.3,4,1,80,5,4
+EMP185,Product,Junior,40.9,2,2,76,5,4
+EMP186,Engineering,Junior,35.1,7,2,84,2,8
+EMP187,QA,Senior,39.5,2,3,81,4,5
+EMP188,DevOps,Mid,50.5,10,2,57,7,3
+EMP189,DevOps,Senior,48.6,11,3,66,5,6
+EMP190,Product,Mid,50.4,8,4,75,4,5
+EMP191,IT Support,Senior,36.8,8,5,72,3,8
+EMP192,Product,Mid,44.5,4,4,86,1,9
+EMP193,DevOps,Junior,40.7,6,2,87,1,8
+EMP194,Product,Junior,35.9,5,4,79,2,8
+EMP195,DevOps,Junior,50.4,5,2,74,4,7
+EMP196,Product,Mid,37.6,4,5,88,2,8
+EMP197,IT Support,Senior,45.7,5,2,77,3,7
+EMP198,IT Support,Junior,41.5,7,4,79,3,6
+EMP199,Engineering,Mid,43.3,10,1,68,3,7
+EMP200,IT Support,Junior,47.5,9,4,74,3,6
+EMP201,DevOps,Mid,31.5,10,1,63,5,4
+EMP202,DevOps,Junior,38.3,10,3,73,2,7
+EMP203,Product,Junior,45.5,9,4,64,6,5
+EMP204,Product,Senior,40.4,3,1,84,3,8
+EMP205,Product,Mid,45.7,6,1,73,4,5
+EMP206,Product,Mid,39.6,3,1,94,1,9
+EMP207,DevOps,Mid,44.1,8,5,85,1,9
+EMP208,Product,Senior,40,8,5,71,4,6
+EMP209,QA,Junior,41.8,2,2,71,9,2
+EMP210,Engineering,Senior,43,2,1,80,5,6
+EMP211,IT Support,Junior,43.5,3,1,88,3,6
+EMP212,Engineering,Junior,43.7,10,3,59,7,3
+EMP213,Product,Mid,46.5,10,3,63,4,5
+EMP214,Engineering,Junior,36.5,8,5,81,2,9
+EMP215,Engineering,Junior,31.2,7,2,59,8,3
+EMP216,QA,Mid,30.8,11,2,68,3,7
+EMP217,IT Support,Mid,33.8,5,3,75,5,6
+EMP218,QA,Senior,48.6,8,5,72,5,6
+EMP219,Product,Senior,35.9,7,3,72,4,6
+EMP220,IT Support,Mid,46.9,4,2,79,3,7
+EMP221,QA,Junior,36.7,11,5,64,5,6
+EMP222,Engineering,Mid,37.9,7,1,78,4,5
+EMP223,DevOps,Junior,48,7,4,75,5,4
+EMP224,Engineering,Senior,35,11,1,53,8,2
+EMP225,Product,Mid,45.5,8,2,65,5,4
+EMP226,DevOps,Mid,53.1,2,3,85,2,8
+EMP227,IT Support,Junior,39.3,4,4,87,3,8
+EMP228,Engineering,Mid,39.3,10,2,66,5,6
+EMP229,IT Support,Mid,34.8,8,1,82,1,8
+EMP230,Product,Mid,43.5,11,5,67,3,7
+EMP231,IT Support,Junior,33.8,2,3,75,8,2
+EMP232,Product,Junior,38.2,6,4,72,5,6
+EMP233,QA,Senior,32,4,2,73,5,6
+EMP234,Engineering,Senior,40.7,9,4,56,8,2
+EMP235,IT Support,Junior,48.6,8,2,69,6,4
+EMP236,Product,Junior,30.3,8,4,74,4,7
+EMP237,IT Support,Junior,42.4,7,2,60,7,4
+EMP238,IT Support,Mid,40.5,3,1,78,4,5
+EMP239,DevOps,Junior,32.8,5,2,73,6,4
+EMP240,DevOps,Mid,43.3,6,4,71,4,6
+EMP241,QA,Mid,39.8,9,2,61,7,3
+EMP242,DevOps,Senior,39.5,6,3,72,4,6
+EMP243,DevOps,Mid,42.4,11,1,63,6,4
+EMP244,IT Support,Mid,46.6,2,5,90,1,10
+EMP245,Engineering,Mid,40.1,9,5,71,3,7
+EMP246,Engineering,Senior,42.3,5,2,72,6,3
+EMP247,IT Support,Senior,49.7,4,3,68,7,2
+EMP248,QA,Mid,41.6,3,5,90,2,9
+EMP249,Engineering,Senior,39.2,10,4,65,4,6
+EMP250,Product,Junior,42.8,2,5,79,5,6
+EMP251,IT Support,Mid,36.8,5,5,79,4,7
+EMP252,DevOps,Mid,44.7,7,5,69,6,4
+EMP253,QA,Mid,40,6,2,80,4,7
+EMP254,IT Support,Junior,46.7,6,5,75,4,6
+EMP255,IT Support,Junior,42.6,6,4,78,3,8
+EMP256,QA,Mid,39.8,3,3,83,3,6
+EMP257,IT Support,Mid,44.5,2,1,86,4,5
+EMP258,Engineering,Junior,39,2,2,76,8,2
+EMP259,Product,Junior,41.9,9,3,63,7,3
+EMP260,Engineering,Senior,41.4,4,5,75,6,3
+EMP261,IT Support,Junior,47.5,4,1,72,6,3
+EMP262,IT Support,Mid,43.2,5,3,75,4,7
+EMP263,Product,Senior,47.9,11,4,62,6,3
+EMP264,Engineering,Junior,35.7,2,4,85,3,7
+EMP265,Engineering,Junior,41.9,3,2,74,6,3
+EMP266,Product,Senior,42.3,6,4,77,5,5
+EMP267,Engineering,Mid,39,11,1,72,2,8
+EMP268,Product,Mid,43.1,4,1,71,6,3
+EMP269,QA,Mid,41.2,6,4,73,5,6
+EMP270,DevOps,Junior,41.5,5,3,75,4,6
+EMP271,Product,Junior,49.4,2,3,84,4,7
+EMP272,DevOps,Senior,45.8,10,5,67,5,6
+EMP273,QA,Mid,41,11,2,72,3,8
+EMP274,QA,Junior,45.6,3,1,76,7,2
+EMP275,Product,Mid,43.2,2,1,80,5,5
+EMP276,Engineering,Senior,45.2,7,3,75,5,4
+EMP277,Product,Senior,50.6,9,3,69,4,6
+EMP278,IT Support,Mid,34.4,10,5,60,7,2
+EMP279,Product,Junior,39.2,11,4,65,5,5
+EMP280,QA,Mid,38.9,4,1,71,6,5
+EMP281,IT Support,Mid,42.4,5,1,64,7,4
+EMP282,QA,Senior,44.4,10,4,69,2,8
+EMP283,Engineering,Mid,48.1,7,4,69,6,5
+EMP284,Engineering,Mid,35.7,11,2,58,5,6
+EMP285,IT Support,Mid,32.5,6,3,70,5,5
+EMP286,QA,Senior,38.5,5,1,91,1,8
+EMP287,IT Support,Mid,39.6,8,2,64,5,6
+EMP288,Engineering,Mid,40.6,5,1,83,3,6
+EMP289,Product,Mid,37.1,4,4,85,3,7
+EMP290,QA,Mid,47.8,7,4,72,4,5
+EMP291,DevOps,Mid,29.9,8,2,64,6,5
+EMP292,IT Support,Mid,44.4,10,5,61,6,4
+EMP293,QA,Junior,36.4,9,1,61,6,5
+EMP294,Engineering,Junior,33.9,10,1,58,7,3
+EMP295,Product,Senior,45.2,8,1,74,4,5
+EMP296,IT Support,Junior,44.1,10,1,58,6,3
+EMP297,QA,Junior,36.5,7,1,78,4,6
+EMP298,QA,Senior,45.1,9,4,59,9,2
+EMP299,DevOps,Senior,38.9,8,5,64,6,4
+EMP300,Product,Mid,37.1,10,2,60,5,5

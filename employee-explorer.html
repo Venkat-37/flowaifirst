@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Explorer - AI-Powered Digital Twin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <script src="navigation.js"></script>
+
+    <div class="dashboard-wrapper">
+        <!-- Page Header -->
+        <header class="page-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">Employee Explorer</h1>
+                    <p class="page-subtitle">Search, Filter, and Explore Employee Data</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Loading & Error Messages -->
+            <div id="loadingMessage" class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>Loading employee data...</p>
+            </div>
+            <div id="errorMessage" class="error-container" style="display: none;"></div>
+
+            <!-- Filter Panel -->
+            <div id="filterPanel" style="display: none;" class="glass-card filter-panel">
+                <div class="filter-header">
+                    <h3 class="filter-title">Filters</h3>
+                    <button class="clear-filters-btn" onclick="clearFilters()">Clear All</button>
+                </div>
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label for="searchInput">Search Employee ID</label>
+                        <input type="text" id="searchInput" placeholder="e.g., EMP001" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                        <label for="departmentFilter">Department</label>
+                        <select id="departmentFilter" class="filter-select">
+                            <option value="">All Departments</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="productivityFilter">Productivity Status</label>
+                        <select id="productivityFilter" class="filter-select">
+                            <option value="">All Status</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="burnoutFilter">Burnout Risk</label>
+                        <select id="burnoutFilter" class="filter-select">
+                            <option value="">All Risk Levels</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employee Table -->
+            <div id="tableContainer" style="display: none;" class="glass-card table-wrapper">
+                <div class="table-header">
+                    <h3 class="table-title">Employee Data</h3>
+                    <div class="table-count" id="tableCount">0 employees</div>
+                </div>
+                <div class="table-scroll">
+                    <table class="employee-table">
+                        <thead>
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Department</th>
+                                <th>Job Level</th>
+                                <th>Productivity Score</th>
+                                <th>Stress Level</th>
+                                <th>Work-Life Balance</th>
+                                <th>Productivity Status</th>
+                                <th>Burnout Risk</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeeTableBody">
+                            <!-- Table rows will be inserted here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination Controls -->
+                <div class="pagination-container" id="paginationContainer" style="display: none;">
+                    <div class="pagination-info">
+                        <span id="paginationInfo">Showing 0-0 of 0 employees</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" id="prevBtn" onclick="previousPage()" disabled>
+                            <span>←</span> Previous
+                        </button>
+                        <div class="pagination-numbers" id="paginationNumbers">
+                            <!-- Page numbers will be inserted here -->
+                        </div>
+                        <button class="pagination-btn" id="nextBtn" onclick="nextPage()" disabled>
+                            Next <span>→</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Employee Detail Modal -->
+    <div id="employeeModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Employee Details</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Employee details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Load CSV data when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            loadCSVData();
+        });
+    </script>
+</body>
+</html>

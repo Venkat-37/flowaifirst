@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Insights & Digital Twin - AI-Powered Digital Twin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <script src="navigation.js"></script>
+
+    <div class="dashboard-wrapper">
+        <!-- Page Header -->
+        <header class="page-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">AI Insights & Digital Twin Analysis</h1>
+                    <p class="page-subtitle">Rule-Based Analytics (ML-Ready)</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Loading & Error Messages -->
+            <div id="loadingMessage" class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>Loading employee data...</p>
+            </div>
+            <div id="errorMessage" class="error-container" style="display: none;"></div>
+
+            <!-- Digital Twin Summary Section -->
+            <div id="digitalTwinSection" style="display: none;" class="glass-card digital-twin-card">
+                <div class="card-header">
+                    <h2 class="card-title">Digital Twin Summary</h2>
+                    <span class="ml-badge">Rule-Based (ML-Ready)</span>
+                </div>
+                <div class="twin-labels" id="twinLabels">
+                    <!-- Labels will be inserted here by JavaScript -->
+                </div>
+            </div>
+
+            <!-- AI Insights & Recommendations -->
+            <div id="aiInsights" style="display: none;" class="glass-card ai-insights-section">
+                <div class="insights-header">
+                    <div class="insights-title-wrapper">
+                        <div class="insights-icon">🤖</div>
+                        <h2 class="insights-title">AI Insights & Recommendations</h2>
+                    </div>
+                    <span class="ml-ready-badge">Rule-Based (ML-Ready)</span>
+                </div>
+                <div class="insights-grid" id="insightsGrid">
+                    <!-- Insights will be inserted here by JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Load CSV data when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            loadCSVData();
+        });
+    </script>
+</body>
+</html>
