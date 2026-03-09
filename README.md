@@ -1,161 +1,170 @@
-# AI-Powered Digital Twin for Employee Productivity
-## Node.js Backend + Vanilla Frontend
+# FlowAI v3 — Enterprise Digital Twin Platform
 
-A prototype web application for demonstrating HR dashboard functionality with employee productivity and burnout risk analysis.
-
-## Tech Stack
-
-- **Backend**: Node.js + Express
-- **Frontend**: Vanilla HTML, CSS, JavaScript
-- **CSV Parsing**: PapaParse (server-side)
-- **Data Format**: CSV file
-
-## Project Structure
+Full-stack rebuild with **FastAPI + MongoDB + React + Firebase Google Auth + Gemini AI**.
 
 ```
-├── server.js                          # Node.js Express server
-├── package.json                       # Node.js dependencies
-├── login.html                         # HR Login Page
-├── dashboard.html                     # HR Dashboard Page
-├── style.css                          # Styling for both pages
-├── script.js                          # Frontend JavaScript
-└── synthetic_it_company_300_employees.csv  # Employee data CSV file
+flowai_v3/
+├── backend/    FastAPI • Motor (async MongoDB) • Gemini 1.5 Flash
+└── frontend/   React • Vite • Tailwind • Firebase Google Auth
 ```
 
-## Installation
+---
 
-1. **Install Node.js dependencies:**
-   ```bash
-   npm install
-   ```
+## Prerequisites
 
-2. **Start the server:**
-   ```bash
-   npm start
-   ```
-   Or:
-   ```bash
-   node server.js
-   ```
+| Tool | Version | Install |
+|------|---------|---------|
+| Python | ≥ 3.11 | python.org |
+| Node.js | ≥ 18 | nodejs.org |
+| MongoDB | ≥ 6.0 | mongodb.com/try/download/community **or** Atlas free tier |
 
-3. **Open your browser:**
-   - Login page: `http://localhost:3000/login.html`
-   - Dashboard: `http://localhost:3000/dashboard.html`
+---
 
-## Login Credentials
+## 1 · Firebase Setup (Google Auth)
 
-- **Email**: `hr@itcompany.com`
-- **Password**: `hr123`
+1. Go to [Firebase Console](https://console.firebase.google.com) → **Add project**
+2. Enable **Authentication** → Sign-in methods → **Google**
+3. **Project Settings** → Your apps → **Add web app** → copy config
+4. Note your **Project ID** (e.g. `my-app-12345`)
+
+---
+
+## 2 · Backend Setup
+
+```bash
+cd backend
+
+# Copy and fill env
+cp .env.example .env
+# Edit .env: set MONGODB_URI, FIREBASE_PROJECT_ID, GEMINI_API_KEY
+
+# Install Python deps
+pip install -r requirements.txt
+
+# Run (seeds MongoDB from CSV on first start)
+uvicorn main:app --reload --port 8000
+```
+
+**On first startup the seeder will:**
+- Insert 6022 activity events into `activity_events`
+- Create 300 employee records in `employees`
+- Compute digital twins for all 300 employees in `digital_twins`
+- Create a demo admin user
+
+**API docs:** http://localhost:8000/docs
+
+### Key `.env` values
+
+```env
+MONGODB_URI=mongodb://localhost:27017     # or Atlas URI
+MONGODB_DB=flowai
+JWT_SECRET=<run: python -c "import secrets; print(secrets.token_hex(32))">
+FIREBASE_PROJECT_ID=your-project-id      # from Firebase Console
+GEMINI_API_KEY=AIza...                   # from aistudio.google.com
+```
+
+---
+
+## 3 · Frontend Setup
+
+```bash
+cd frontend
+
+# Copy and fill env
+cp .env.example .env
+# Edit .env: set Firebase config values
+
+# Install Node deps
+npm install
+
+# Run dev server
+npm run dev
+```
+
+Open: http://localhost:5173
+
+### Key `.env` values
+
+```env
+VITE_FIREBASE_API_KEY=AIzaSy...
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_API_URL=http://localhost:8000
+```
+
+---
+
+## 4 · Getting a Gemini API Key
+
+1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Click **Create API key**
+3. Copy and set `GEMINI_API_KEY` in `backend/.env`
+
+---
+
+## Architecture
+
+```
+Browser (React + Vite :5173)
+  │  Firebase SDK → Google Sign-In popup → Firebase ID token
+  │  POST /api/auth/google {id_token}
+  ↓
+FastAPI (:8000)
+  │  Verify Firebase token via google-auth
+  │  Issue app JWT (7-day)
+  │  All subsequent requests: Bearer JWT
+  ↓
+MongoDB (motor async)
+  ├── users            Google UID + role + emp_id
+  ├── employees        300 employees from CSV
+  ├── activity_events  6022 activity records (seeded from CSV)
+  ├── digital_twins    Computed burnout/efficiency/battery per employee
+  └── ai_insights      Cached Gemini responses (1-hour TTL)
+```
+
+---
 
 ## API Endpoints
 
-### POST `/api/login`
-Login authentication endpoint.
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/google` | Exchange Firebase token → JWT |
+| GET  | `/api/auth/me` | Current user |
+| GET  | `/api/employees` | Paginated list with filters |
+| GET  | `/api/employees/summary` | Org-wide stat cards |
+| GET  | `/api/employees/{id}/stats` | Full stats for one employee |
+| GET  | `/api/twins/org-summary` | Dept breakdown + at-risk list |
+| GET  | `/api/twins/{id}` | Single digital twin |
+| POST | `/api/twins/{id}/refresh` | Recompute twin (HR Manager) |
+| POST | `/api/telemetry/ingest` | Ingest live agent event |
+| GET  | `/api/telemetry/hr-overview` | Simple HR stats |
+| POST | `/api/insights/generate` | Generate / return cached Gemini insight |
 
-**Request Body:**
-```json
-{
-  "email": "hr@itcompany.com",
-  "password": "hr123"
-}
-```
+---
 
-**Success Response:**
-```json
-{
-  "success": true,
-  "message": "Login successful"
-}
-```
+## Roles
 
-**Error Response:**
-```json
-{
-  "success": false,
-  "message": "Invalid credentials"
-}
-```
+| Role | Access |
+|------|--------|
+| **HR Manager** | All dashboards, employee list, AI insights, twin refresh |
+| **Department Head** | All dashboards except admin operations |
+| **Employee** | Own profile + twin only |
 
-### GET `/api/employees`
-Get all employee data with calculated productivity status and burnout risk.
+All new Google Sign-In users default to **HR Manager** for demo. Change via MongoDB Compass: `db.users.updateOne({email: "..."}, {$set: {role: "Employee", emp_id: "EMP001"}})`.
 
-**Success Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "Employee_ID": "E001",
-      "Department": "Engineering",
-      "Job_Level": "Senior",
-      "Productivity_Score": 82.5,
-      "Stress_Level": 6.2,
-      "Work_Life_Balance": 7.1,
-      "Productivity_Status": "High",
-      "Burnout_Risk": "Medium"
-    },
-    ...
-  ],
-  "total": 300
-}
-```
+---
 
-## Features
+## Scoring Algorithms
 
-### Module 1: HR Login
-- Login form with email and password
-- API-based authentication
-- Error message display for invalid credentials
-- Redirects to dashboard on successful login
+**Efficiency** = (Productive + Productive (Contextual)) / Total × 100
 
-### Module 2: HR Dashboard
-- Fetches employee data from backend API
-- Displays employee data in a formatted table
-- Calculates Productivity Status and Burnout Risk (server-side)
-- Shows dashboard statistics (total employees, high productivity count, high burnout risk count)
+**Burnout Score** (0-100, higher = worse):
+- After-hours work penalty (max 30 pts)
+- Distraction ratio penalty (max 25 pts)
+- Context-switch rate penalty (max 25 pts)
+- Short focus blocks penalty (max 10 pts)
+- Low efficiency penalty (max 10 pts)
 
-## Logic Rules
+**Cognitive Battery** = max(100 − burnout × 0.75, 0)
 
-### Productivity Status:
-- **High**: Productivity_Score ≥ 75 (Green badge)
-- **Medium**: Productivity_Score 50-74 (Yellow badge)
-- **Low**: Productivity_Score < 50 (Red badge)
-
-### Burnout Risk:
-- **High**: Stress_Level ≥ 7 (Red badge)
-- **Medium**: Stress_Level 4-6 (Yellow badge)
-- **Low**: Stress_Level ≤ 3 (Green badge)
-
-## CSV Data Format
-
-The CSV file (`synthetic_it_company_300_employees.csv`) contains:
-- Employee_ID
-- Department
-- Job_Level
-- Work_Hours_Per_Week
-- Meetings_Per_Week
-- WFH_Days_Per_Week
-- Productivity_Score
-- Stress_Level
-- Work_Life_Balance
-
-## Dependencies
-
-- **express**: Web framework for Node.js
-- **cors**: Enable CORS for API requests
-- **papaparse**: CSV parsing library
-- **fs**: File system module (built-in)
-- **path**: Path utilities (built-in)
-
-## Development
-
-The server runs on port 3000 by default. To change the port, modify the `PORT` constant in `server.js`.
-
-## Notes
-
-This is a prototype application for academic demonstration purposes. The code is designed to be simple, clear, and easy to explain during project reviews.
-
-**Important**: 
-- Make sure `synthetic_it_company_300_employees.csv` is in the root directory
-- The backend server must be running for the frontend to work
-- All CSV parsing and data processing happens on the server side
+**Risk Levels:** LOW (<35) · MEDIUM (35-54) · HIGH (55-74) · CRITICAL (≥75)

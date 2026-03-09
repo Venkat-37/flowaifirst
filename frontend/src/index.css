@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { font-family: 'Exo 2', sans-serif; }
+  body {
+    background-color: #030712;
+    color: #e2e8f0;
+    margin: 0;
+    overflow-x: hidden;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #0d1b2e; }
+  ::-webkit-scrollbar-thumb { background: #1e4068; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #00b4d8; }
+}
+
+@layer components {
+  /* Command-center card */
+  .ops-card {
+    @apply bg-ops-card border border-ops-border rounded-lg relative overflow-hidden;
+    background-image: linear-gradient(135deg, rgba(0,180,216,0.03) 0%, transparent 60%);
+  }
+  .ops-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,180,216,0.5), transparent);
+  }
+
+  /* Metric value */
+  .metric-value {
+    @apply font-mono text-3xl font-bold text-ops-cyan;
+    text-shadow: 0 0 20px rgba(0,180,216,0.5);
+  }
+
+  /* Risk badges */
+  .badge-low      { @apply bg-ops-green/10 text-ops-green border border-ops-green/30 rounded px-2 py-0.5 text-xs font-mono uppercase; }
+  .badge-medium   { @apply bg-ops-amber/10 text-ops-amber border border-ops-amber/30 rounded px-2 py-0.5 text-xs font-mono uppercase; }
+  .badge-high     { @apply bg-ops-red/10 text-ops-red border border-ops-red/30 rounded px-2 py-0.5 text-xs font-mono uppercase; }
+  .badge-critical { @apply bg-ops-red/20 text-red-400 border border-red-500/50 rounded px-2 py-0.5 text-xs font-mono uppercase animate-pulse; }
+
+  /* Scanline overlay */
+  .scanlines {
+    position: relative;
+  }
+  .scanlines::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+  }
+
+  /* Grid background */
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(0,180,216,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,180,216,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Input */
+  .ops-input {
+    @apply bg-ops-navy border border-ops-border rounded px-3 py-2 text-ops-text text-sm font-body
+           placeholder-ops-muted focus:outline-none focus:border-ops-cyan focus:ring-1 focus:ring-ops-cyan/30;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .ops-input:focus { box-shadow: 0 0 12px rgba(0,180,216,0.2); }
+
+  /* Button */
+  .ops-btn {
+    @apply bg-ops-cyan/10 border border-ops-cyan/40 text-ops-cyan px-4 py-2 rounded text-sm font-body font-medium
+           hover:bg-ops-cyan/20 hover:border-ops-cyan/70 transition-all duration-200;
+  }
+  .ops-btn:hover { box-shadow: 0 0 16px rgba(0,180,216,0.3); }
+
+  .ops-btn-primary {
+    @apply bg-ops-cyan text-ops-black px-4 py-2 rounded text-sm font-body font-semibold
+           hover:bg-ops-cyan/90 transition-all duration-200;
+  }
+}
