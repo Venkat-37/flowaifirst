@@ -2,18 +2,11 @@
 from __future__ import annotations
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
-from database import get_db, twins_col, activity_col
-from middleware.auth import get_current_user
+from database import twins_col, activity_col, mood_col, goals_col, pomodoro_col
+from middleware.auth import get_current_user, owns_employee_data
 from services.scoring import compute_stats
 
 router = APIRouter(prefix="/api/wellness", tags=["wellness"])
-
-
-# ── Collections ───────────────────────────────────────────────────────────────
-
-def mood_col():       return get_db()["mood_logs"]
-def goals_col():      return get_db()["wellness_goals"]
-def pomodoro_col():   return get_db()["pomodoro_sessions"]
 
 
 # ── Wellness score helper ─────────────────────────────────────────────────────
@@ -27,15 +20,18 @@ async def _compute_wellness_score(emp_id: str) -> dict:
     burnout = twin.get("burnout_score", 0)
     eff     = twin.get("efficiency", 70)
 
-    # Gap 2.2 fix: cognitive_battery is derived from burnout (100 - burnout*0.75)
-    # so using it here double-counts burnout at 65% effective weight.
-    # Instead, use an independent focus quality metric:
-    #   focus_quality = inverse of context-switch rate (lower switching = better focus)
+    # Calculate focus quality from context-switch rate
     switch_rate = twin.get("switch_rate", 0.3)                    # 0-1
     focus_quality = round((1 - min(switch_rate, 1.0)) * 100, 1)   # 0-100
 
-    # Weighted blend: 40% focus quality + 35% (100-burnout) + 25% efficiency
-    raw = (focus_quality * 0.40) + ((100 - burnout) * 0.35) + (eff * 0.25)
+    # Fetch last 7 days mood
+    cutoff = (datetime.utcnow() - timedelta(days=7)).strftime("%Y-%m-%d")
+    moods = await mood_col().find({"emp_id": emp_id, "log_date": {"$gte": cutoff}}).to_list(None)
+    avg_mood = sum(m["mood_score"] for m in moods) / len(moods) if moods else 3.5 # Default okay/good
+    mood_factor = (avg_mood / 5.0) * 100
+
+    # Weighted blend: 30% mood + 30% focus quality + 25% (100-burnout) + 15% efficiency
+    raw = (mood_factor * 0.30) + (focus_quality * 0.30) + ((100 - burnout) * 0.25) + (eff * 0.15)
     score = round(max(0, min(100, raw)), 1)
 
     return {
@@ -52,6 +48,8 @@ async def _compute_wellness_score(emp_id: str) -> dict:
 @router.get("/employee/{emp_id}")
 async def get_employee_wellness(emp_id: str, user: dict = Depends(get_current_user)):
     emp_id = emp_id.upper()
+    if not owns_employee_data(user, emp_id):
+        raise HTTPException(403, "Access denied")
     return await _compute_wellness_score(emp_id)
 
 
@@ -61,6 +59,8 @@ async def get_employee_wellness(emp_id: str, user: dict = Depends(get_current_us
 async def wellness_activity_stats(emp_id: str, user: dict = Depends(get_current_user)):
     """Return activity breakdown needed by the wellness activity panel."""
     emp_id = emp_id.upper()
+    if not owns_employee_data(user, emp_id):
+        raise HTTPException(403, "Access denied")
     twin = await twins_col().find_one({"emp_id": emp_id}, {"_id": 0})
     if not twin:
         raise HTTPException(404, f"No data for {emp_id}")
@@ -133,9 +133,11 @@ async def get_mood_history(emp_id: str, user: dict = Depends(get_current_user)):
 
 @router.get("/plan/{emp_id}")
 async def get_wellness_plan(emp_id: str, user: dict = Depends(get_current_user)):
-    """Generate a personalised wellness plan from twin data."""
     emp_id = emp_id.upper()
-    twin   = await twins_col().find_one({"emp_id": emp_id}, {"_id": 0})
+    if not owns_employee_data(user, emp_id):
+        raise HTTPException(403, "Access denied")
+    twin = await twins_col().find_one({"emp_id": emp_id}, {"_id": 0})
+  
     if not twin:
         return {"actions": [], "hr_stress": None, "hr_wlb": None,
                 "hr_hours": None, "hr_wfh": None}
@@ -237,13 +239,15 @@ async def get_wellness_plan(emp_id: str, user: dict = Depends(get_current_user))
 
 @router.get("/goals/{emp_id}")
 async def get_wellness_goals(emp_id: str, user: dict = Depends(get_current_user)):
-    emp_id  = emp_id.upper()
-    col     = goals_col()
-    # Week starts on Monday
-    today   = datetime.utcnow()
+    emp_id = emp_id.upper()
+    if not owns_employee_data(user, emp_id):
+        raise HTTPException(403, "Access denied")
+    today  = datetime.utcnow()
+    
     monday  = today - timedelta(days=today.weekday())
     week_start = monday.strftime("%Y-%m-%d")
 
+    col = goals_col()
     docs = await col.find(
         {"emp_id": emp_id, "week_start": week_start},
         {"_id": 0}

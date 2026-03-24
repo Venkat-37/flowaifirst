@@ -1,7 +1,7 @@
 """routes/actuation.py — Actuation webhook endpoints."""
 from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
-from database import get_db, twins_col
+from database import get_db, twins_col, actuations_col
 from middleware.auth import get_current_user, require_hr_manager
 from services.actuation import fire_actuation, evaluate_and_actuate
 from services.actuation import (
@@ -49,7 +49,7 @@ async def manual_trigger(body: dict, user: dict = Depends(require_hr_manager)):
 async def actuation_history(emp_id: str, user: dict = Depends(get_current_user)):
     """Return recent actuation events for one employee (last 20)."""
     emp_id = emp_id.upper()
-    col    = get_db()["actuations"]
+    col    = actuations_col()
     docs   = await col.find(
         {"emp_id": emp_id},
         {"_id": 0, "_id_ts": 0}
@@ -60,7 +60,7 @@ async def actuation_history(emp_id: str, user: dict = Depends(get_current_user))
 @router.get("/history")
 async def all_actuation_history(user: dict = Depends(require_hr_manager)):
     """Return last 50 actuation events org-wide. HR Manager only."""
-    col  = get_db()["actuations"]
+    col  = actuations_col()
     docs = await col.find({}, {"_id": 0, "_id_ts": 0}).sort("timestamp", -1).limit(50).to_list(50)
     return {"actuations": docs}
 

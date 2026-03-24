@@ -1,5 +1,5 @@
-import { NavLink, useNavigate } from 'react-router-dom'
-import { useAuthStore } from '../store/authStore'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import useAuthStore from '../store/authStore'
 import {
   LayoutDashboard, Users, Cpu, LogOut, Activity,
   Shield, ChevronRight, Wifi, Heart
@@ -40,10 +40,17 @@ export default function Layout({ children }) {
   const visibleNav = NAV.filter(n => n.roles.includes(user?.role))
 
   return (
-    <div className="min-h-screen bg-ops-black grid-bg flex flex-col">
+    <div className="min-h-screen bg-[#0B1623] text-[#e2e8f0] flex flex-col" style={{
+      backgroundImage: `
+        radial-gradient(ellipse at top center, rgba(11,42,60,0.5) 0%, #0B1623 100%),
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)
+      `,
+      backgroundSize: '100% 100%, 40px 40px, 40px 40px'
+    }}>
       {/* Top bar */}
-      <header className="border-b border-ops-border bg-ops-navy/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center gap-6">
+      <header className="border-b border-[rgba(255,255,255,0.04)] bg-[#0B1623]/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-screen-2xl mx-auto px-6 h-16 flex items-center gap-6">
           {/* Logo */}
           <div className="flex items-center gap-2 mr-4">
             <div className="w-7 h-7 border-2 border-ops-cyan rounded flex items-center justify-center"
@@ -58,42 +65,44 @@ export default function Layout({ children }) {
           </div>
 
           {/* Nav */}
-          <nav className="flex items-center gap-1 flex-1 flex-wrap">
+          <nav className="flex items-center gap-2 flex-1 flex-wrap">
             {visibleNav.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to} to={to}
                 className={({ isActive }) =>
-                  `flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-body font-medium tracking-wider transition-all duration-200 ${isActive
-                    ? 'bg-ops-cyan/15 text-ops-cyan border border-ops-cyan/40'
-                    : 'text-ops-muted hover:text-ops-text hover:bg-white/5'
-                  }${to === '/wellness' && !({ isActive: false }).isActive ? ' border border-ops-green/20 text-ops-green/70 hover:border-ops-green/40 hover:text-ops-green' : ''}`
+                  `flex items-center gap-2 px-3 py-1.5 rounded-[8px] text-[11px] font-mono font-bold tracking-wider transition-all duration-200 ease ${isActive
+                    ? 'bg-[#00e6c3]/15 text-[#00e6c3] border border-[#00e6c3]/40 shadow-[0_0_10px_rgba(0,230,195,0.2)]'
+                    : 'text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(255,255,255,0.05)] border border-transparent'
+                  }${to === '/wellness' && !({ isActive: false }).isActive ? ' border border-[#10b981]/20 text-[#10b981]/80 hover:border-[#10b981]/40 hover:text-[#10b981]' : ''}`
                 }
               >
-                <Icon size={13} />
+                <Icon size={16} />
                 {label}
               </NavLink>
             ))}
+
+            {/* Removed redundant Admin link for HR Managers */}
           </nav>
 
           {/* Right */}
           <div className="flex items-center gap-4 ml-auto">
-            <div className="hidden lg:flex items-center gap-1.5 text-ops-green">
-              <Wifi size={12} />
-              <span className="text-xs font-mono">LIVE</span>
+            <div className="hidden lg:flex items-center gap-2 text-[#10b981]">
+              <Wifi size={16} />
+              <span className="text-[11px] font-mono tracking-widest leading-none">LIVE</span>
             </div>
             <NotificationBell />
             <Clock />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {user?.picture && (
-                <img src={user.picture} alt="" className="w-7 h-7 rounded-full border border-ops-border" />
+                <img src={user.picture} alt="" className="w-8 h-8 rounded-full border border-[rgba(255,255,255,0.1)]" />
               )}
               <div className="hidden sm:block">
-                <p className="text-xs font-body text-ops-text leading-none">{user?.name}</p>
-                <p className="text-xs font-mono text-ops-cyan leading-none mt-0.5">{user?.role}</p>
+                <p className="text-[13px] font-body text-[#e2e8f0] leading-none mb-[4px]">{user?.name}</p>
+                <p className="text-[11px] font-mono text-[#00e6c3] tracking-widest leading-none opacity-80">{user?.role?.toUpperCase()}</p>
               </div>
               <button onClick={handleLogout}
-                className="p-1.5 rounded hover:bg-ops-red/10 hover:text-ops-red text-ops-muted transition-colors ml-1">
-                <LogOut size={14} />
+                className="p-2 rounded hover:bg-[#ff4c4c]/10 hover:text-[#ff4c4c] text-[#94a3b8] transition-colors ml-2 duration-200">
+                <LogOut size={16} />
               </button>
             </div>
           </div>
@@ -101,22 +110,22 @@ export default function Layout({ children }) {
       </header>
 
       {/* Breadcrumb */}
-      <div className="border-b border-ops-border/50 bg-ops-black/50">
-        <div className="max-w-screen-2xl mx-auto px-4 py-1.5 flex items-center gap-1 text-xs font-mono text-ops-muted">
+      <div className="border-b border-[rgba(255,255,255,0.04)] bg-[rgba(11,22,35,0.5)]">
+        <div className="max-w-screen-2xl mx-auto px-6 py-2 flex items-center gap-2 text-[11px] font-mono text-[#94a3b8] tracking-widest opacity-80">
           <span>FLOWAI</span>
-          <ChevronRight size={10} />
-          <span className="text-ops-cyan">{user?.role?.toUpperCase()}</span>
+          <ChevronRight size={12} />
+          <span className="text-[#00e6c3]">{user?.role?.toUpperCase()}</span>
         </div>
       </div>
 
       {/* Main */}
-      <main className="flex-1 max-w-screen-2xl mx-auto w-full px-4 py-6 animate-fade-in">
+      <main className="flex-1 max-w-screen-2xl mx-auto w-full px-6 py-8 animate-fade-in relative z-10">
         {children}
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-ops-border/30 py-2 text-center">
-        <span className="text-xs font-mono text-ops-muted/50">
+      <footer className="border-t border-[rgba(255,255,255,0.04)] py-4 text-center relative z-10 bg-[#0B1623]/80 backdrop-blur-sm">
+        <span className="text-[11px] font-mono text-[#94a3b8] tracking-widest opacity-50">
           FLOWAI v3.1 · DIGITAL TWIN PLATFORM · PRIVACY-FIRST · CLASSIFIED
         </span>
       </footer>

@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from database import activity_col, twins_col
 from middleware.auth import get_current_user
+from middleware.privacy import anonymize_twin_data
 from services.forecasting import compute_burnout_forecast
 
 router = APIRouter(prefix="/api/forecast", tags=["forecast"])
@@ -26,12 +27,13 @@ async def get_burnout_forecast(emp_id: str, user: dict = Depends(get_current_use
 
     forecast = compute_burnout_forecast(events, twin.get("burnout_score", 0))
 
-    return {
+    payload = {
         "emp_id":          emp_id,
         "current_burnout": twin.get("burnout_score", 0),
         "current_risk":    twin.get("risk_level", "LOW"),
         **forecast,
     }
+    return anonymize_twin_data(payload, user.get("role"))
 
 
 @router.get("/org/at-risk-trend")
@@ -63,4 +65,5 @@ async def org_risk_trend(user: dict = Depends(get_current_user)):
             })
 
     at_risk_trend.sort(key=lambda x: x["forecast_21d"], reverse=True)
-    return {"at_risk_trend": at_risk_trend[:20], "total_flagged": len(at_risk_trend)}
+    payload = {"at_risk_trend": at_risk_trend[:20], "total_flagged": len(at_risk_trend)}
+    return anonymize_twin_data(payload, user.get("role"))

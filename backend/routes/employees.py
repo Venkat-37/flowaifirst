@@ -2,7 +2,7 @@
 from __future__ import annotations
 import re
 from fastapi import APIRouter, Depends, HTTPException, Query
-from database import activity_col, employees_col, twins_col
+from database import activity_col, employees_col, twins_col, behavior_col
 from middleware.auth import get_current_user
 
 router = APIRouter(prefix="/api/employees", tags=["employees"])
@@ -138,3 +138,26 @@ async def employee_activity(
         if hasattr(e.get("timestamp"), "isoformat"):
             e["timestamp"] = e["timestamp"].isoformat()
     return events
+
+
+@router.get("/{emp_id}/profile")
+async def employee_profile(emp_id: str, user: dict = Depends(get_current_user)):
+    """
+    Full merged employee profile: digital twin + behavioral data.
+    Returns activity-derived metrics alongside HR-sourced behavioral indicators.
+    """
+    emp_id = emp_id.upper()
+
+    # Access control
+    if user.get("role") == "Employee" and user.get("emp_id") != emp_id:
+        raise HTTPException(403, "Access denied")
+
+    twin = await twins_col().find_one({"emp_id": emp_id}, {"_id": 0})
+    behavior = await behavior_col().find_one({"emp_id": emp_id}, {"_id": 0})
+
+    if not twin and not behavior:
+        raise HTTPException(404, f"No data found for {emp_id}")
+
+    # Merge — twin takes priority for computed fields
+    profile = {**(behavior or {}), **(twin or {})}
+    return profile

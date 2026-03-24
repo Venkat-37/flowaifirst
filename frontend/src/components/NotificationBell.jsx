@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { Bell, X, Check, CheckCheck, AlertTriangle, Heart, ShieldAlert, Target, Volume2 } from 'lucide-react'
-import { useNotifications, useMarkNotificationRead, useMarkAllRead } from '../hooks/useApi'
+import { Bell, X, Check, CheckCheck, AlertTriangle, Heart, ShieldAlert, Target, Volume2, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { useNotifications, useMarkNotificationRead, useMarkAllRead, useRateSuggestion } from '../hooks/useApi'
 import { useAuthStore } from '../store/authStore'
 
 const SEVERITY_STYLES = {
@@ -18,6 +18,7 @@ export default function NotificationBell() {
     const { data } = useNotifications()
     const markRead = useMarkNotificationRead()
     const markAllRead = useMarkAllRead()
+    const rateSuggestion = useRateSuggestion()
 
     const notifications = data?.notifications || []
     const unread = data?.unread_count || 0
@@ -149,17 +150,56 @@ export default function NotificationBell() {
                                                     </div>
                                                 )}
 
-                                                {/* Action chips */}
-                                                {n.actions?.length > 0 && (
-                                                    <div className="flex flex-wrap gap-1.5 mt-2">
-                                                        {n.actions.slice(0, 3).map((action, i) => (
-                                                            <span key={i}
-                                                                className="text-[10px] font-mono text-ops-cyan/70 bg-ops-cyan/5 border border-ops-cyan/10 px-2 py-0.5 rounded">
-                                                                {action}
-                                                            </span>
-                                                        ))}
+                                                {/* Action chips and Feedback */ }
+                                                <div className="flex flex-wrap items-center justify-between mt-2">
+                                                    {n.actions?.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {n.actions.slice(0, 3).map((action, i) => (
+                                                                <span key={i}
+                                                                    className="text-[10px] font-mono text-ops-cyan/70 bg-ops-cyan/5 border border-ops-cyan/10 px-2 py-0.5 rounded">
+                                                                    {action}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    ) : <div />}
+
+                                                    <div className="flex items-center gap-1">
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                rateSuggestion.mutate({
+                                                                    emp_id: user.emp_id,
+                                                                    suggestion_type: "actuation",
+                                                                    suggestion_id: n.id,
+                                                                    suggestion_text: n.message,
+                                                                    trigger: n.trigger_key,
+                                                                    rating: 1
+                                                                })
+                                                            }}
+                                                            className="p-1 rounded text-ops-muted hover:text-ops-green hover:bg-ops-green/10 transition-colors"
+                                                            title="Helpful"
+                                                        >
+                                                            <ThumbsUp size={12} />
+                                                        </button>
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                rateSuggestion.mutate({
+                                                                    emp_id: user.emp_id,
+                                                                    suggestion_type: "actuation",
+                                                                    suggestion_id: n.id,
+                                                                    suggestion_text: n.message,
+                                                                    trigger: n.trigger_key,
+                                                                    rating: -1
+                                                                })
+                                                            }}
+                                                            className="p-1 rounded text-ops-muted hover:text-ops-red hover:bg-ops-red/10 transition-colors"
+                                                            title="Not Helpful"
+                                                        >
+                                                            <ThumbsDown size={12} />
+                                                        </button>
                                                     </div>
-                                                )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

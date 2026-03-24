@@ -1,11 +1,11 @@
-"""services/rlhf.py — Reinforcement Learning from Human Feedback (RLHF).
+"""services/prompt_calibration.py - Adaptive Prompt Calibration using Human Feedback.
 
 Architecture:
   1. Every AI suggestion (observation, recommendation, plan action, actuation)
      can receive a thumbs-up or thumbs-down from the user it affected.
-  2. Feedback is stored in the `rlhf_feedback` MongoDB collection.
+  2. Feedback is stored in the `calibration_feedback` MongoDB collection.
   3. This module aggregates those signals into a "preference model" that
-     is injected into subsequent Gemini prompts — gradually aligning the
+     is injected into subsequent Gemini prompts - gradually aligning the
      AI's behaviour with real human preferences.
 
 The preference model works on suggestion_type buckets:
@@ -19,7 +19,7 @@ For each bucket we compute an "agreement_score" in [-1, 1]:
    0 = mixed or no data
   -1 = consistently disliked (all thumbs down)
 
-This score is exposed via /api/feedback/rlhf-summary and can be injected
+This score is exposed via /api/feedback/rlhf-summary (kept for backwards compat) and can be injected
 into Gemini prompts as a calibration header.
 """
 from __future__ import annotations
@@ -28,10 +28,10 @@ from datetime import datetime
 
 async def get_preference_summary(db) -> dict:
     """
-    Compute the org-wide RLHF preference summary from stored feedback.
+    Compute the org-wide Adaptive Prompt Calibration summary from stored feedback.
     Returns a dict suitable for injection into Gemini prompts.
     """
-    col = db["rlhf_feedback"]
+    col = db["calibration_feedback"]
 
     # Aggregate by suggestion_type
     pipeline = [
@@ -47,11 +47,24 @@ async def get_preference_summary(db) -> dict:
     rows = await col.aggregate(pipeline).to_list(None)
 
     buckets = {}
+    total_up = 0
+    total_down = 0
+    total_fb = 0
+    preferred = []
+
     for row in rows:
         up   = row["thumbs_up"]
         down = row["thumbs_down"]
         tot  = row["total"]
         score = (up - down) / max(tot, 1)           # in [-1, 1]
+        
+        total_up += up
+        total_down += down
+        total_fb += tot
+        
+        if score > 0.4:
+            preferred.append(row["_id"])
+
         buckets[row["_id"]] = {
             "thumbs_up":    up,
             "thumbs_down":  down,
@@ -68,6 +81,10 @@ async def get_preference_summary(db) -> dict:
         "computed_at": datetime.utcnow().isoformat() + "Z",
         "buckets": buckets,
         "prompt_hint": _build_prompt_hint(buckets),
+        "total_thumbs_up": total_up,
+        "total_thumbs_down": total_down,
+        "total_feedback": total_fb,
+        "top_preferred_types": preferred,
     }
 
 
@@ -96,7 +113,7 @@ def _build_prompt_hint(buckets: dict) -> str:
         return "No user feedback collected yet. Generate balanced, evidence-based suggestions."
 
     return (
-        "HUMAN FEEDBACK CALIBRATION (RLHF signals from actual users):\n" +
+        "ADAPTIVE PROMPT CALIBRATION (Signals from actual human users):\n" +
         "\n".join(lines) +
         "\n\nAdjust your tone and specificity accordingly."
     )
@@ -104,11 +121,11 @@ def _build_prompt_hint(buckets: dict) -> str:
 
 async def build_calibrated_prompt_prefix(db) -> str:
     """
-    Returns a prompt prefix containing RLHF calibration.
+    Returns a prompt prefix containing Adaptive Prompt Calibration data.
     Inject this at the start of any Gemini prompt to align with user preferences.
     """
     summary = await get_preference_summary(db)
     hint = summary.get("prompt_hint", "")
     if not hint:
         return ""
-    return f"\n[RLHF CALIBRATION]\n{hint}\n[END CALIBRATION]\n\n"
+    return f"\n[ADAPTIVE PROMPT CALIBRATION]\n{hint}\n[END CALIBRATION]\n\n"

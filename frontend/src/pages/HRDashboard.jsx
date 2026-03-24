@@ -25,6 +25,7 @@ import { useState, useEffect } from 'react'
 import { useOrgSummary, useEmployeeSummary, useOrgRiskTrend, useRlhfSummary } from '../hooks/useApi'
 import RiskBadge from '../components/RiskBadge'
 import AIInsightPanel from '../components/AIInsightPanel'
+import OrganizationAnalytics from '../components/OrganizationAnalytics'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import {
@@ -34,7 +35,8 @@ import {
 import {
   Users, AlertTriangle, TrendingUp, TrendingDown,
   Zap, ArrowRight, Minus, Activity, ChevronRight,
-  CheckCircle, AlertCircle, XCircle, Heart, ThumbsUp, ThumbsDown, Bell
+  CheckCircle, AlertCircle, XCircle, Heart, ThumbsUp, ThumbsDown, Bell,
+  Download, FileText, Calendar, BarChart3
 } from 'lucide-react'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -345,6 +347,24 @@ export default function HRDashboard() {
   const { data: trend, isLoading: trendLoading } = useOrgRiskTrend()
   const { data: rlhf } = useRlhfSummary()
 
+  const [activeTab, setActiveTab] = useState('overview')
+
+  // Reports tab state
+  const [reportLoading, setReportLoading] = useState(false)
+  const [reportEmpId, setReportEmpId] = useState('')
+  const [reportDept, setReportDept] = useState('')
+
+  // PTO tab state
+  const [ptoData, setPtoData] = useState(null)
+  const [ptoDept, setPtoDept] = useState('')
+  const [ptoLoading, setPtoLoading] = useState(false)
+
+  // Benchmarks tab state
+  const [benchData, setBenchData] = useState(null)
+  const [benchIndustry, setBenchIndustry] = useState('')
+  const [benchIndustries, setBenchIndustries] = useState([])
+  const [benchLoading, setBenchLoading] = useState(false)
+
   // Recent actuations org-wide
   const [recentActuations, setRecentActuations] = useState([])
   useEffect(() => {
@@ -398,142 +418,482 @@ export default function HRDashboard() {
       {/* ─── TIER 1: KPI Strip ─── */}
       <KpiStrip summ={summ} orgLoading={loading} />
 
-      {/* ─── TIER 2: Action Queue (primary decision surface) ─── */}
-      <ActionQueue org={org} orgLoading={orgLoading} navigate={navigate} />
-
-      {/* ─── TIER 3: Analytics (supporting context only) ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-
-        {/* Left: single focused bar chart */}
-        <div className="ops-card p-5 lg:col-span-3">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Activity size={13} className="text-ops-cyan" />
-              <span className="text-xs font-mono tracking-widest text-ops-muted">
-                DEPARTMENT EFFICIENCY
-              </span>
-            </div>
-            <span className="text-xs font-mono text-ops-muted/50">
-              orange = dept with ≥3 at-risk
-            </span>
-          </div>
-          <DeptChart deptData={deptData} loading={orgLoading} />
-        </div>
-
-        {/* Right: trajectory table (replaces uninformative radar) */}
-        <div className="ops-card p-5 lg:col-span-2">
-          <TrajectoryTable trend={trend} loading={trendLoading} />
-
-          {/* Dept burnout summary — chunked inline list */}
-          {deptData.length > 0 && (
-            <div className="mt-5 pt-4 border-t border-ops-border/30">
-              <div className="flex items-center gap-1.5 mb-3">
-                <Zap size={12} className="text-ops-purple" />
-                <span className="text-xs font-mono tracking-widest text-ops-muted">AVG BURNOUT BY DEPT</span>
-              </div>
-              <div className="space-y-1.5">
-                {deptData.slice(0, 5).map(d => (
-                  <div key={d.dept} className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-ops-muted w-20 truncate">{d.fullName}</span>
-                    {burnoutBar(d.burnout)}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+      {/* ─── Tab Navigation ─── */}
+      <div className="flex items-center gap-1 border-b border-ops-border/30 pb-px mb-4 overflow-x-auto">
+        {[
+          { id: 'overview',   label: 'OVERVIEW',       color: 'ops-cyan' },
+          { id: 'analytics',  label: 'ORG ANALYTICS',  color: 'ops-purple' },
+          { id: 'reports',    label: 'REPORTS',        color: 'ops-green' },
+          { id: 'pto',        label: 'PTO INSIGHTS',   color: 'ops-amber' },
+          { id: 'benchmarks', label: 'BENCHMARKS',     color: 'ops-cyan' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 font-mono text-xs cursor-pointer transition-colors border-b-2 whitespace-nowrap ${
+              activeTab === tab.id
+                ? `border-${tab.color} text-${tab.color} font-bold`
+                : 'border-transparent text-ops-muted hover:text-ops-cyan/70'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* ─── RLHF + Actuation Summary ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {activeTab === 'overview' ? (
+        <div className="space-y-5 animate-fade-in">
+          {/* ─── TIER 2: Action Queue (primary decision surface) ─── */}
+          <ActionQueue org={org} orgLoading={orgLoading} navigate={navigate} />
 
-        {/* RLHF Summary */}
-        <div className="ops-card p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <ThumbsUp size={13} className="text-ops-green" />
-            <span className="text-xs font-mono tracking-widest text-ops-muted">AI CALIBRATION · RLHF</span>
-          </div>
-          {rlhf ? (
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2">
-                <div className="bg-ops-green/10 border border-ops-green/20 rounded-lg p-3 text-center">
-                  <p className="font-mono text-lg font-bold text-ops-green">{rlhf.total_thumbs_up ?? 0}</p>
-                  <p className="font-mono text-xs text-ops-muted mt-1">THUMBS UP</p>
+          {/* ─── TIER 3: Analytics (supporting context only) ─── */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            {/* Left: single focused bar chart */}
+            <div className="ops-card p-5 lg:col-span-3">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Activity size={13} className="text-ops-cyan" />
+                  <span className="text-xs font-mono tracking-widest text-ops-muted">
+                    DEPARTMENT EFFICIENCY
+                  </span>
                 </div>
-                <div className="bg-ops-red/10 border border-ops-red/20 rounded-lg p-3 text-center">
-                  <p className="font-mono text-lg font-bold text-ops-red">{rlhf.total_thumbs_down ?? 0}</p>
-                  <p className="font-mono text-xs text-ops-muted mt-1">THUMBS DOWN</p>
-                </div>
-                <div className="bg-ops-cyan/10 border border-ops-cyan/20 rounded-lg p-3 text-center">
-                  <p className="font-mono text-lg font-bold text-ops-cyan">{rlhf.total_feedback ?? 0}</p>
-                  <p className="font-mono text-xs text-ops-muted mt-1">TOTAL</p>
-                </div>
+                <span className="text-xs font-mono text-ops-muted/50 hidden sm:inline">
+                  orange = dept with ≥3 at-risk
+                </span>
               </div>
-              {rlhf.top_preferred_types?.length > 0 && (
-                <div>
-                  <p className="font-mono text-xs text-ops-muted tracking-widest mb-2">PREFERRED SUGGESTION TYPES</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {rlhf.top_preferred_types.map(t => (
-                      <span key={t} className="font-mono text-xs bg-ops-green/10 text-ops-green border border-ops-green/30 px-2 py-1 rounded">
-                        {t}
-                      </span>
+              <DeptChart deptData={deptData} loading={orgLoading} />
+            </div>
+
+            {/* Right: trajectory table (replaces uninformative radar) */}
+            <div className="ops-card p-5 lg:col-span-2">
+              <TrajectoryTable trend={trend} loading={trendLoading} />
+
+              {/* Dept burnout summary — chunked inline list */}
+              {deptData.length > 0 && (
+                <div className="mt-5 pt-4 border-t border-ops-border/30">
+                  <div className="flex items-center gap-1.5 mb-3">
+                    <Zap size={12} className="text-ops-purple" />
+                    <span className="text-xs font-mono tracking-widest text-ops-muted">AVG BURNOUT BY DEPT</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {deptData.slice(0, 5).map(d => (
+                      <div key={d.dept} className="flex items-center gap-2">
+                        <span className="font-mono text-xs text-ops-muted w-20 truncate">{d.fullName}</span>
+                        {burnoutBar(d.burnout)}
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
-              <p className="text-xs text-ops-muted font-body">
-                Employee feedback calibrates AI recommendations. More feedback = better suggestions.
-              </p>
             </div>
-          ) : (
-            <p className="text-sm text-ops-muted italic text-center py-4">
-              No feedback collected yet. Employees can rate AI suggestions with 👍/👎.
-            </p>
-          )}
+          </div>
+
+          {/* ─── RLHF + Actuation Summary ─── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* RLHF Summary */}
+            <div className="ops-card p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <ThumbsUp size={13} className="text-ops-green" />
+                <span className="text-xs font-mono tracking-widest text-ops-muted">AI CALIBRATION · RLHF</span>
+              </div>
+              {rlhf ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-ops-green/10 border border-ops-green/20 rounded-lg p-3 text-center">
+                      <p className="font-mono text-lg font-bold text-ops-green">{rlhf.total_thumbs_up ?? 0}</p>
+                      <p className="font-mono text-xs text-ops-muted mt-1">THUMBS UP</p>
+                    </div>
+                    <div className="bg-ops-red/10 border border-ops-red/20 rounded-lg p-3 text-center">
+                      <p className="font-mono text-lg font-bold text-ops-red">{rlhf.total_thumbs_down ?? 0}</p>
+                      <p className="font-mono text-xs text-ops-muted mt-1">THUMBS DOWN</p>
+                    </div>
+                    <div className="bg-ops-cyan/10 border border-ops-cyan/20 rounded-lg p-3 text-center">
+                      <p className="font-mono text-lg font-bold text-ops-cyan">{rlhf.total_feedback ?? 0}</p>
+                      <p className="font-mono text-xs text-ops-muted mt-1">TOTAL</p>
+                    </div>
+                  </div>
+                  {rlhf.top_preferred_types?.length > 0 && (
+                    <div>
+                      <p className="font-mono text-xs text-ops-muted tracking-widest mb-2">PREFERRED SUGGESTION TYPES</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {rlhf.top_preferred_types.map(t => (
+                          <span key={t} className="font-mono text-xs bg-ops-green/10 text-ops-green border border-ops-green/30 px-2 py-1 rounded">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-xs text-ops-muted font-body">
+                    Employee feedback calibrates AI recommendations. More feedback = better suggestions.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-ops-muted italic text-center py-4">
+                  No feedback collected yet. Employees can rate AI suggestions with 👍/👎.
+                </p>
+              )}
+            </div>
+
+            {/* Recent Actuations */}
+            <div className="ops-card p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Bell size={13} className="text-ops-purple" />
+                <span className="text-xs font-mono tracking-widest text-ops-muted">RECENT INTERVENTIONS</span>
+              </div>
+              {recentActuations.length === 0 ? (
+                <p className="text-sm text-ops-muted italic text-center py-4 font-body">
+                  No actuation events yet. Use Twin Mirror → ACTUATE to trigger interventions.
+                </p>
+              ) : (
+                <div className="divide-y divide-ops-border/20">
+                  {recentActuations.map((a, i) => (
+                    <div key={i} className="flex items-center gap-3 py-2.5">
+                      <span className="text-sm">
+                        {a.trigger === 'DO_NOT_DISTURB' ? '🔕' : a.trigger === 'WELLNESS_ALERT' ? '💚'
+                          : a.trigger === 'CRITICAL_BURNOUT_ALERT' ? '🚨' : a.trigger === 'DEEP_WORK_MODE' ? '🧠'
+                            : a.trigger === 'PROACTIVE_BURNOUT_INTERVENTION' ? '🔮' : '✅'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-mono text-xs text-ops-cyan">{a.emp_id}</p>
+                        <p className="text-xs text-ops-muted truncate">{a.trigger?.replace(/_/g, ' ')}</p>
+                      </div>
+                      <span className="font-mono text-xs text-ops-muted/60 shrink-0">
+                        {a.timestamp ? new Date(a.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' }) : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ─── AI Insight (collapsed by default to avoid overload) ─── */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <ArrowRight size={11} className="text-ops-muted/50" />
+              <span className="text-xs font-mono text-ops-muted/50 tracking-wider">
+                OPTIONAL · AI analysis is one click away — does not load automatically
+              </span>
+            </div>
+            <AIInsightPanel targetId="Frontend" targetType="department" />
+          </div>
+        </div>
+      ) : activeTab === 'analytics' ? (
+        <OrganizationAnalytics />
+
+      ) : activeTab === 'reports' ? (
+        /* ═══════ REPORTS TAB ═══════ */
+        <div className="space-y-5 animate-fade-in">
+          <div className="ops-card p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <FileText size={16} className="text-ops-green" />
+              <h2 className="text-sm font-mono text-ops-green tracking-widest">DATA EXPORT CENTER</h2>
+            </div>
+
+            {/* Org-wide export */}
+            <div className="mb-6">
+              <h3 className="text-xs font-mono text-ops-muted tracking-wider mb-3">FULL ORGANIZATION EXPORT</h3>
+              <button
+                disabled={reportLoading}
+                onClick={async () => {
+                  setReportLoading(true)
+                  try {
+                    const API = import.meta.env.VITE_API_URL || ''
+                    const res = await axios.get(`${API}/api/reports/org.csv`, { responseType: 'blob' })
+                    const url = URL.createObjectURL(new Blob([res.data]))
+                    const a = document.createElement('a'); a.href = url; a.download = 'flowai_org_report.csv'; a.click()
+                    URL.revokeObjectURL(url)
+                  } catch (e) { alert('Export failed: ' + (e?.response?.data?.detail || e.message)) }
+                  setReportLoading(false)
+                }}
+                className="flex items-center gap-2 px-4 py-3 rounded-lg border bg-ops-green/10 border-ops-green/30
+                           text-ops-green font-mono text-xs tracking-wider hover:bg-ops-green/20 transition-all
+                           disabled:opacity-50"
+              >
+                <Download size={14} /> EXPORT ORG CSV
+              </button>
+            </div>
+
+            {/* Department export */}
+            <div className="mb-6">
+              <h3 className="text-xs font-mono text-ops-muted tracking-wider mb-3">DEPARTMENT EXPORT</h3>
+              <div className="flex gap-2 flex-wrap">
+                {(org?.dept_breakdown || []).map(d => (
+                  <button
+                    key={d.department}
+                    onClick={async () => {
+                      try {
+                        const API = import.meta.env.VITE_API_URL || ''
+                        const res = await axios.get(`${API}/api/reports/department/${encodeURIComponent(d.department)}.csv`, { responseType: 'blob' })
+                        const url = URL.createObjectURL(new Blob([res.data]))
+                        const a = document.createElement('a'); a.href = url; a.download = `${d.department.replace(/\s/g,'_')}_report.csv`; a.click()
+                        URL.revokeObjectURL(url)
+                      } catch (e) { alert('Export failed: ' + (e?.response?.data?.detail || e.message)) }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg border bg-ops-navy/50 border-ops-border/30
+                               text-ops-muted font-mono text-xs hover:text-ops-cyan hover:border-ops-cyan/30 transition-all"
+                  >
+                    <Download size={11} /> {d.department}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Single employee export */}
+            <div>
+              <h3 className="text-xs font-mono text-ops-muted tracking-wider mb-3">INDIVIDUAL EMPLOYEE EXPORT</h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={reportEmpId}
+                  onChange={e => setReportEmpId(e.target.value.toUpperCase())}
+                  placeholder="EMP001"
+                  className="flex-1 max-w-[200px] py-2.5 px-3 rounded-lg border bg-ops-navy/50 border-ops-border/50
+                             text-ops-text text-sm font-mono placeholder:text-ops-muted/40
+                             focus:border-ops-cyan/50 focus:outline-none transition-colors"
+                />
+                <button
+                  disabled={!reportEmpId.trim()}
+                  onClick={async () => {
+                    try {
+                      const API = import.meta.env.VITE_API_URL || ''
+                      const res = await axios.get(`${API}/api/reports/employee/${reportEmpId.trim()}.csv`, { responseType: 'blob' })
+                      const url = URL.createObjectURL(new Blob([res.data]))
+                      const a = document.createElement('a'); a.href = url; a.download = `${reportEmpId.trim()}_report.csv`; a.click()
+                      URL.revokeObjectURL(url)
+                    } catch (e) { alert('Export failed: ' + (e?.response?.data?.detail || e.message)) }
+                  }}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg border bg-ops-cyan/10 border-ops-cyan/30
+                             text-ops-cyan font-mono text-xs tracking-wider hover:bg-ops-cyan/20 transition-all
+                             disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <Download size={12} /> EXPORT
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Recent Actuations */}
-        <div className="ops-card p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Bell size={13} className="text-ops-purple" />
-            <span className="text-xs font-mono tracking-widest text-ops-muted">RECENT INTERVENTIONS</span>
-          </div>
-          {recentActuations.length === 0 ? (
-            <p className="text-sm text-ops-muted italic text-center py-4 font-body">
-              No actuation events yet. Use Twin Mirror → ACTUATE to trigger interventions.
-            </p>
-          ) : (
-            <div className="divide-y divide-ops-border/20">
-              {recentActuations.map((a, i) => (
-                <div key={i} className="flex items-center gap-3 py-2.5">
-                  <span className="text-sm">
-                    {a.trigger === 'DO_NOT_DISTURB' ? '🔕' : a.trigger === 'WELLNESS_ALERT' ? '💚'
-                      : a.trigger === 'CRITICAL_BURNOUT_ALERT' ? '🚨' : a.trigger === 'DEEP_WORK_MODE' ? '🧠' : '✅'}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-mono text-xs text-ops-cyan">{a.emp_id}</p>
-                    <p className="text-xs text-ops-muted truncate">{a.trigger?.replace(/_/g, ' ')}</p>
-                  </div>
-                  <span className="font-mono text-xs text-ops-muted/60 shrink-0">
-                    {a.timestamp ? new Date(a.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' }) : ''}
-                  </span>
-                </div>
+      ) : activeTab === 'pto' ? (
+        /* ═══════ PTO INSIGHTS TAB ═══════ */
+        <div className="space-y-5 animate-fade-in">
+          <div className="ops-card p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <Calendar size={16} className="text-ops-amber" />
+              <h2 className="text-sm font-mono text-ops-amber tracking-widest">PTO & LEAVE INTELLIGENCE</h2>
+            </div>
+
+            {/* Department selector */}
+            <div className="flex gap-2 flex-wrap mb-5">
+              {(org?.dept_breakdown || []).map(d => (
+                <button
+                  key={d.department}
+                  onClick={async () => {
+                    setPtoDept(d.department)
+                    setPtoLoading(true)
+                    try {
+                      const API = import.meta.env.VITE_API_URL || ''
+                      const res = await axios.get(`${API}/api/pto/department/${encodeURIComponent(d.department)}`)
+                      setPtoData(res.data)
+                    } catch { setPtoData(null) }
+                    setPtoLoading(false)
+                  }}
+                  className={`px-3 py-2 rounded-lg border font-mono text-xs transition-all ${
+                    ptoDept === d.department
+                      ? 'bg-ops-amber/20 border-ops-amber/50 text-ops-amber'
+                      : 'bg-ops-navy/50 border-ops-border/30 text-ops-muted hover:text-ops-amber hover:border-ops-amber/30'
+                  }`}
+                >
+                  {d.department}
+                </button>
               ))}
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* ─── AI Insight (collapsed by default to avoid overload) ─── */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <ArrowRight size={11} className="text-ops-muted/50" />
-          <span className="text-xs font-mono text-ops-muted/50 tracking-wider">
-            OPTIONAL · AI analysis is one click away — does not load automatically
-          </span>
+            {/* PTO results */}
+            {ptoLoading ? (
+              <div className="text-center py-10 font-mono text-xs text-ops-muted animate-pulse">LOADING PTO DATA...</div>
+            ) : ptoData ? (
+              <div>
+                {/* Zero PTO warning */}
+                {ptoData.zero_pto_count > 0 && (
+                  <div className="flex items-start gap-2 bg-ops-red/10 border border-ops-red/30 rounded-lg px-4 py-3 mb-4">
+                    <AlertTriangle size={14} className="text-ops-red mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-mono text-ops-red font-bold">
+                        {ptoData.zero_pto_count} EMPLOYEE{ptoData.zero_pto_count > 1 ? 'S' : ''} WITH ZERO PTO IN 90 DAYS
+                      </p>
+                      <p className="text-xs text-ops-muted mt-1">High burnout risk signal - these employees have not taken any time off.</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Employee PTO table */}
+                <div className="divide-y divide-ops-border/20">
+                  <div className="flex items-center gap-4 py-2 text-xs font-mono text-ops-muted tracking-wider">
+                    <span className="w-20">EMP ID</span>
+                    <span className="flex-1">DAYS OFF (90d)</span>
+                    <span className="w-28 text-right">LAST PTO</span>
+                    <span className="w-20 text-right">STATUS</span>
+                  </div>
+                  {(ptoData.employees || []).slice(0, 20).map((emp, i) => (
+                    <div key={emp.emp_id || emp._id || i}
+                      className={`flex items-center gap-4 py-2.5 ${emp.days_off_90d === 0 ? 'bg-ops-red/5' : ''}`}
+                    >
+                      <span className="font-mono text-xs text-ops-cyan w-20">{emp.emp_id || emp._id}</span>
+                      <div className="flex-1 flex items-center gap-2">
+                        <div className="w-24 h-1.5 bg-ops-border/30 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{
+                            width: `${Math.min((emp.days_off_90d || 0) * 10, 100)}%`,
+                            background: (emp.days_off_90d || 0) === 0 ? '#dc2626' : (emp.days_off_90d || 0) < 3 ? '#f59e0b' : '#10b981'
+                          }} />
+                        </div>
+                        <span className="font-mono text-xs text-ops-text">{emp.days_off_90d ?? 0}</span>
+                      </div>
+                      <span className="font-mono text-xs text-ops-muted w-28 text-right">
+                        {emp.last_pto_date || 'None'}
+                      </span>
+                      <span className={`font-mono text-xs w-20 text-right ${
+                        (emp.days_off_90d || 0) === 0 ? 'text-ops-red' : (emp.days_off_90d || 0) < 3 ? 'text-ops-amber' : 'text-ops-green'
+                      }`}>
+                        {(emp.days_off_90d || 0) === 0 ? 'AT RISK' : (emp.days_off_90d || 0) < 3 ? 'LOW' : 'HEALTHY'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <Calendar size={32} className="text-ops-muted/30 mx-auto mb-3" />
+                <p className="font-mono text-xs text-ops-muted">SELECT A DEPARTMENT TO VIEW PTO DATA</p>
+              </div>
+            )}
+          </div>
         </div>
-        <AIInsightPanel targetId="Frontend" targetType="department" />
-      </div>
+
+      ) : activeTab === 'benchmarks' ? (
+        /* ═══════ BENCHMARKS TAB ═══════ */
+        <div className="space-y-5 animate-fade-in">
+          <div className="ops-card p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <BarChart3 size={16} className="text-ops-cyan" />
+              <h2 className="text-sm font-mono text-ops-cyan tracking-widest">INDUSTRY BENCHMARKS</h2>
+            </div>
+
+            {/* Load industries */}
+            {benchIndustries.length === 0 && (
+              <button
+                onClick={async () => {
+                  setBenchLoading(true)
+                  try {
+                    const API = import.meta.env.VITE_API_URL || ''
+                    const res = await axios.get(`${API}/api/benchmarks/industries`)
+                    setBenchIndustries(res.data.industries || [])
+                  } catch { setBenchIndustries(['Technology', 'Healthcare', 'Financial Services', 'Manufacturing']) }
+                  setBenchLoading(false)
+                }}
+                className="flex items-center gap-2 px-4 py-3 rounded-lg border bg-ops-cyan/10 border-ops-cyan/30
+                           text-ops-cyan font-mono text-xs tracking-wider hover:bg-ops-cyan/20 transition-all"
+              >
+                <BarChart3 size={14} /> LOAD INDUSTRY DATA
+              </button>
+            )}
+
+            {/* Industry selector */}
+            {benchIndustries.length > 0 && (
+              <div className="flex gap-2 flex-wrap mb-5">
+                {benchIndustries.map(ind => (
+                  <button
+                    key={ind}
+                    onClick={async () => {
+                      setBenchIndustry(ind)
+                      setBenchLoading(true)
+                      try {
+                        const API = import.meta.env.VITE_API_URL || ''
+                        const [res, orgRes] = await Promise.all([
+                          axios.get(`${API}/api/benchmarks/${encodeURIComponent(ind)}`),
+                          axios.get(`${API}/api/benchmarks/org/summary`)
+                        ])
+                        setBenchData({ ...res.data, orgSummary: orgRes.data })
+                      } catch { setBenchData(null) }
+                      setBenchLoading(false)
+                    }}
+                    className={`px-3 py-2 rounded-lg border font-mono text-xs transition-all ${
+                      benchIndustry === ind
+                        ? 'bg-ops-cyan/20 border-ops-cyan/50 text-ops-cyan'
+                        : 'bg-ops-navy/50 border-ops-border/30 text-ops-muted hover:text-ops-cyan hover:border-ops-cyan/30'
+                    }`}
+                  >
+                    {ind}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Benchmark data */}
+            {benchLoading ? (
+              <div className="text-center py-10 font-mono text-xs text-ops-muted animate-pulse">LOADING BENCHMARKS...</div>
+            ) : benchData?.norms ? (
+              <div>
+                <h3 className="text-xs font-mono text-ops-muted tracking-wider mb-4">
+                  {benchData.industry?.toUpperCase()} — YOUR ORG vs INDUSTRY NORMS
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {Object.entries(benchData.norms).map(([metric, values]) => {
+                    // Map metric key from industry norms to org averages from our new endpoint
+                    const mappedMetric = metric === 'ee' ? 'exhaustion' 
+                                       : metric === 'cy' ? 'cynicism'
+                                       : metric === 'pa' ? 'professional_efficacy'
+                                       : metric === 'burnout_composite' ? 'burnout_composite' 
+                                       : metric
+                    const orgVal = benchData.orgSummary?.org_averages?.[mappedMetric] ?? 0
+                    const benchMean = values?.mean ?? 0
+                    const diff = orgVal - benchMean
+                    
+                    // For EE, CY, Burnout lower is better. For PE higher is better.
+                    const isBetter = ['ee', 'cy', 'burnout_composite', 'exhaustion', 'cynicism'].includes(metric) 
+                      ? diff < 0 : diff > 0
+
+                    return (
+                      <div key={metric} className="bg-ops-black/40 border border-ops-border/30 rounded-lg p-4">
+                        <p className="font-mono text-xs text-ops-muted tracking-wider mb-3">
+                          {metric.replace(/_/g, ' ').toUpperCase()}
+                        </p>
+                        <div className="flex items-end justify-between mb-2">
+                          <div>
+                            <p className="text-xs text-ops-muted">Your Org</p>
+                            <p className="font-mono text-lg font-bold text-ops-cyan">{orgVal.toFixed(1)}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-ops-muted">Industry</p>
+                            <p className="font-mono text-lg font-bold text-ops-muted">{benchMean.toFixed?.(1) ?? benchMean}</p>
+                          </div>
+                        </div>
+                        <div className={`text-xs font-mono flex items-center gap-1 ${
+                          isBetter ? 'text-ops-green' : 'text-ops-red'
+                        }`}>
+                          {isBetter ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                          {Math.abs(diff).toFixed(1)} {isBetter ? 'better' : 'worse'} than industry
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : benchIndustry ? (
+              <div className="text-center py-10">
+                <p className="font-mono text-xs text-ops-muted">No benchmark data available for {benchIndustry}</p>
+              </div>
+            ) : benchIndustries.length > 0 ? (
+              <div className="text-center py-10">
+                <BarChart3 size={32} className="text-ops-muted/30 mx-auto mb-3" />
+                <p className="font-mono text-xs text-ops-muted">SELECT AN INDUSTRY TO COMPARE</p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+      ) : null}
 
     </div>
   )

@@ -36,29 +36,35 @@ async def generate_insight(req: InsightRequest, request: Request, user: dict = D
             return {**cached, "cached": True}
 
     # Generate fresh insight
-    if req.target_type == "employee":
-        emp_id = req.target_id.upper()
-        twin   = await twins_col().find_one({"emp_id": emp_id}, {"_id": 0})
-        if not twin:
-            return {"error": f"No twin found for {emp_id}"}
+    try:
+        if req.target_type == "employee":
+            emp_id = req.target_id.upper()
+            twin   = await twins_col().find_one({"emp_id": emp_id}, {"_id": 0})
+            if not twin:
+                return {"error": f"No twin found for {emp_id}"}
 
-        # Get top apps
-        app_pipeline = [
-            {"$match": {"emp_id": emp_id}},
-            {"$group": {"_id": "$app_name", "count": {"$sum": 1}}},
-            {"$sort": {"count": -1}},
-            {"$limit": 6},
-        ]
-        app_agg  = await activity_col().aggregate(app_pipeline).to_list(None)
-        top_apps = [b["_id"] for b in app_agg]
+            # Get top apps
+            app_pipeline = [
+                {"$match": {"emp_id": emp_id}},
+                {"$group": {"_id": "$app_name", "count": {"$sum": 1}}},
+                {"$sort": {"count": -1}},
+                {"$limit": 6},
+            ]
+            app_agg  = await activity_col().aggregate(app_pipeline).to_list(None)
+            top_apps = [b["_id"] for b in app_agg]
 
-        result = await gemini.generate_employee_insight(emp_id, twin, top_apps)
+            result = await gemini.generate_employee_insight(emp_id, twin, top_apps)
 
-    else:  # department
-        dept_twin_docs = await twins_col().find(
-            {"department": req.target_id}, {"_id": 0}
-        ).to_list(None)
-        result = await gemini.generate_department_insight(req.target_id, dept_twin_docs)
+        else:  # department
+            dept_twin_docs = await twins_col().find(
+                {"department": req.target_id}, {"_id": 0}
+            ).to_list(None)
+            result = await gemini.generate_department_insight(req.target_id, dept_twin_docs)
+    except Exception as exc:
+        print(f"  [!] ERROR generating insight: {exc}")
+        import traceback
+        traceback.print_exc()
+        return {"error": str(exc)}
 
     # Persist
     doc = {

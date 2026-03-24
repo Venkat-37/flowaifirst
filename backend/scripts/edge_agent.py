@@ -18,10 +18,28 @@ from __future__ import annotations
 import argparse
 import json
 import random
-import time
+import time as _time
 import urllib.request
 import urllib.error
 from datetime import datetime
+
+# ── Idle detection state ──────────────────────────────────────────────────────
+_last_event_time = _time.monotonic()
+
+def _record_event(event_type: str = "activity"):
+    """Call this whenever any activity event is captured."""
+    global _last_event_time
+    _last_event_time = _time.monotonic()
+
+def _compute_idle_minutes() -> float:
+    """
+    Returns minutes of idle time in the current window.
+    Idle = more than 5 minutes with no captured activity event.
+    """
+    idle_threshold_s = 300   # 5 minutes
+    elapsed          = _time.monotonic() - _last_event_time
+    idle_s           = max(elapsed - idle_threshold_s, 0)
+    return round(idle_s / 60, 1)
 
 
 # ── App catalogue (simulates what a real OS activity capture would record) ────
@@ -89,6 +107,7 @@ def compute_local_metrics(events: list[dict]) -> dict:
         "local_switch_rate": round(switches / max(total - 1, 1), 3),
         "local_switch_count": switches,
         "avg_context_switch_latency_ms": avg_switch_latency_ms,
+        "idle_minutes":                  _compute_idle_minutes(),
         "computed_at_edge": True,     # confirms data was aggregated before upload
         "raw_events_uploaded": False, # confirms PII-free architecture
     }
@@ -156,10 +175,11 @@ def main():
         metrics = compute_local_metrics(events)
         post_aggregated_metric(args.api_url, args.emp_id, metrics,
                                args.token, dry_run=args.demo)
+        _record_event()  # Mark activity as having occurred this cycle
         if args.interval <= 0:
             break
         print(f"\n  ⏱  Next cycle in {args.interval}s…")
-        time.sleep(args.interval)
+        _time.sleep(args.interval)
 
 
 if __name__ == "__main__":

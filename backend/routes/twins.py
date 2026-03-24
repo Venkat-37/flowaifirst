@@ -2,8 +2,9 @@
 from __future__ import annotations
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
-from database import activity_col, twins_col, insights_col
-from middleware.auth import get_current_user, require_hr_manager
+from database import activity_col, twins_col, insights_col, twin_history_col
+from middleware.auth import get_current_user, require_hr_manager, owns_employee_data
+from middleware.privacy import anonymize_twin_data
 from services.scoring import compute_stats
 
 router = APIRouter(prefix="/api/twins", tags=["twins"])
@@ -50,26 +51,63 @@ async def org_summary(user: dict = Depends(get_current_user)):
     ).sort("burnout_score", -1).limit(10).to_list(10)
 
     total = await col.count_documents({})
-    return {
+    payload = {
         "total_twins":       total,
         "dept_breakdown":    dept_formatted,
         "top_at_risk":       at_risk,
     }
+    return anonymize_twin_data(payload, user.get("role"))
 
 
 @router.get("/{emp_id}")
 async def get_twin(emp_id: str, user: dict = Depends(get_current_user)):
     """Get digital twin for one employee."""
-    emp_id = emp_id.upper()
-
-    # BOLA fix: Employee-role can only view their own twin
-    if user.get('role') == 'Employee' and user.get('emp_id') != emp_id:
-        raise HTTPException(403, 'Access denied — you may only view your own twin')
-
+    emp_id = emp_id.strip().upper()
+    if emp_id.isdigit():
+        emp_id = f"EMP{int(emp_id):03d}"
+        
+    if not owns_employee_data(user, emp_id):
+        raise HTTPException(403, "Access denied — you may only view your own twin")
     twin = await twins_col().find_one({"emp_id": emp_id}, {"_id": 0})
     if not twin:
         raise HTTPException(404, f"Twin not found for {emp_id}")
     if "last_updated" in twin and hasattr(twin["last_updated"], "isoformat"):
+        twin["last_updated"] = twin["last_updated"].isoformat()
+    return twin
+
+
+@router.post("/{emp_id}/sync")
+async def sync_twin(emp_id: str, user: dict = Depends(get_current_user)):
+    """Role-aware twin sync — employees sync their own, HR can sync any."""
+    emp_id = emp_id.upper()
+
+    # BOLA: employees can only sync their own twin
+    if user.get("role") == "Employee" and user.get("emp_id") != emp_id:
+        raise HTTPException(403, "You may only sync your own twin")
+
+    events = await activity_col().find({"emp_id": emp_id}, {"_id": 0}).to_list(None)
+    if not events:
+        raise HTTPException(404, f"No activity data for {emp_id}")
+
+    stats = compute_stats(events)
+    dept  = events[0].get("department", "") if events else ""
+    update = {**stats, "department": dept, "last_updated": datetime.utcnow()}
+
+    await twins_col().update_one(
+        {"emp_id": emp_id},
+        {"$set": update},
+        upsert=True,
+    )
+    
+    # Save historical snapshot
+    snapshot = {"emp_id": emp_id, "timestamp": datetime.utcnow(), **stats}
+    snapshot.pop("_id", None)
+    await twin_history_col().insert_one(snapshot)
+    
+    await insights_col().delete_one({"target_id": emp_id, "target_type": "employee"})
+
+    twin = await twins_col().find_one({"emp_id": emp_id}, {"_id": 0})
+    if twin and "last_updated" in twin:
         twin["last_updated"] = twin["last_updated"].isoformat()
     return twin
 
@@ -91,6 +129,12 @@ async def refresh_twin(emp_id: str, user: dict = Depends(require_hr_manager)):
         {"$set": update},
         upsert=True,
     )
+    
+    # Save historical snapshot
+    snapshot = {"emp_id": emp_id, "timestamp": datetime.utcnow(), **stats}
+    snapshot.pop("_id", None)
+    await twin_history_col().insert_one(snapshot)
+    
     # Invalidate stale AI insight cache so next request regenerates
     await insights_col().delete_one({"target_id": emp_id, "target_type": "employee"})
 
@@ -123,6 +167,12 @@ async def refresh_twin_actuated(emp_id: str, user: dict = Depends(require_hr_man
     update = {**stats, "department": dept, "last_updated": datetime.utcnow()}
 
     await twins_col().update_one({"emp_id": emp_id}, {"$set": update}, upsert=True)
+    
+    # Save historical snapshot
+    snapshot = {"emp_id": emp_id, "timestamp": datetime.utcnow(), **stats}
+    snapshot.pop("_id", None)
+    await twin_history_col().insert_one(snapshot)
+    
     # Invalidate stale AI insight cache
     await insights_col().delete_one({"target_id": emp_id, "target_type": "employee"})
     new_twin = await twins_col().find_one({"emp_id": emp_id}, {"_id": 0})

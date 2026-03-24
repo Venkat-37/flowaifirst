@@ -18,7 +18,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime
 from typing import Optional
-from database import get_db
+from database import audit_col
 
 
 # ── Event type constants ──────────────────────────────────────────────────────
@@ -84,8 +84,7 @@ async def log_event(
         "timestamp":   datetime.utcnow(),
     }
     try:
-        db = get_db()
-        await db["audit_log"].insert_one(doc)
+        await audit_col().insert_one(doc)
     except Exception as e:
         # Never fail the parent operation because of audit
         print(f"  ⚠ Audit log write failed: {e}")
@@ -116,10 +115,10 @@ def log_event_bg(
 
 async def ensure_audit_indexes() -> None:
     """Create indexes for efficient querying of audit logs."""
-    col = get_db()["audit_log"]
+    col = audit_col()
     await col.create_index("event_type")
     await col.create_index("actor")
     await col.create_index("target")
     await col.create_index("timestamp")
     await col.create_index([("event_type", 1), ("timestamp", -1)])
-    print("  ✓ Audit log indexes ready")
+    print("  [OK] Audit log indexes ready")

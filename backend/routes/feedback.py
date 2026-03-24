@@ -1,10 +1,11 @@
-"""routes/feedback.py — RLHF: collect and expose human feedback on AI suggestions."""
+"""routes/feedback.py — Adaptive Prompt Calibration & CMAB feedback."""
 from __future__ import annotations
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from database import get_db
 from middleware.auth import get_current_user
-from services.rlhf import get_preference_summary
+from services.prompt_calibration import get_preference_summary
+from services.bandit_service import bandit_service
 
 router = APIRouter(prefix="/api/feedback", tags=["feedback"])
 
@@ -40,7 +41,7 @@ async def submit_feedback(body: dict, user: dict = Depends(get_current_user)):
         raise HTTPException(400, "suggestion_id is required")
 
     db = get_db()
-    col = db["rlhf_feedback"]
+    col = db["calibration_feedback"]
 
     # One rating per (emp_id, suggestion_id) — upsert so users can change mind
     await col.update_one(
@@ -56,6 +57,14 @@ async def submit_feedback(body: dict, user: dict = Depends(get_current_user)):
         }},
         upsert=True,
     )
+
+    # Update the ML Contextual Multi-Armed Bandit
+    # Thumbs up = reward 1.0, Thumbs down = reward 0.0
+    reward = 1.0 if rating == 1 else 0.0
+    action_key = suggestion_type
+    if suggestion_type == "actuation" and body.get("trigger"):
+        action_key = str(body.get("trigger"))
+    await bandit_service.update_reward(emp_id, action_key, reward)
 
     # Return updated counts for this suggestion so UI can refresh instantly
     up   = await col.count_documents({"suggestion_id": suggestion_id, "rating":  1})
@@ -73,7 +82,7 @@ async def submit_feedback(body: dict, user: dict = Depends(get_current_user)):
 async def get_suggestion_ratings(suggestion_id: str, user: dict = Depends(get_current_user)):
     """Get current thumbs up/down counts for a specific suggestion."""
     db  = get_db()
-    col = db["rlhf_feedback"]
+    col = db["calibration_feedback"]
     up   = await col.count_documents({"suggestion_id": suggestion_id, "rating":  1})
     down = await col.count_documents({"suggestion_id": suggestion_id, "rating": -1})
     return {"suggestion_id": suggestion_id, "thumbs_up": up, "thumbs_down": down}
@@ -83,7 +92,7 @@ async def get_suggestion_ratings(suggestion_id: str, user: dict = Depends(get_cu
 async def get_my_rating(suggestion_id: str, emp_id: str, user: dict = Depends(get_current_user)):
     """Get the calling user's rating for a specific suggestion."""
     db  = get_db()
-    col = db["rlhf_feedback"]
+    col = db["calibration_feedback"]
     doc = await col.find_one(
         {"emp_id": emp_id.upper(), "suggestion_id": suggestion_id},
         {"_id": 0, "rating": 1}
@@ -94,7 +103,7 @@ async def get_my_rating(suggestion_id: str, emp_id: str, user: dict = Depends(ge
 @router.get("/rlhf-summary")
 async def rlhf_summary(user: dict = Depends(get_current_user)):
     """
-    Return the org-wide RLHF preference summary.
+    Return the org-wide Adaptive Prompt Calibration summary.
     This is what gets injected into Gemini prompts to calibrate the AI.
     """
     db = get_db()
@@ -105,6 +114,6 @@ async def rlhf_summary(user: dict = Depends(get_current_user)):
 async def recent_feedback(user: dict = Depends(get_current_user)):
     """Return the 30 most recent feedback entries (for HR review)."""
     db  = get_db()
-    col = db["rlhf_feedback"]
+    col = db["calibration_feedback"]
     docs = await col.find({}, {"_id": 0}).sort("rated_at", -1).limit(30).to_list(30)
     return {"feedback": docs}

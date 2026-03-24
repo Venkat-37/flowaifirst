@@ -11,8 +11,9 @@ class UserDoc(BaseModel):
     google_uid: str
     email: str
     name: str
+    password: Optional[str] = None  # v3.3: for non-OAuth logic
     picture: str = ""
-    role: str = "Employee"       # Employee | HR Manager | Department Head
+    role: str = "Employee"       # Employee | HR Manager | Department Head | Admin
     emp_id: Optional[str] = None  # linked employee record
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -25,6 +26,17 @@ class TokenResponse(BaseModel):
 
 class GoogleAuthRequest(BaseModel):
     id_token: str
+
+
+class PasswordLoginRequest(BaseModel):
+    username: str  # Can be email or emp_id
+    password: str
+
+
+class EmployeeMappingUpdate(BaseModel):
+    department: Optional[str] = None
+    job_level: Optional[str] = None
+    work_hours_per_week: Optional[float] = None
 
 
 # ── Employee ──────────────────────────────────────────────────────────────────
@@ -56,6 +68,11 @@ class TelemetryIngest(BaseModel):
     app_name: str
     window_title: str = ""
     category: str
+    timestamp: Optional[datetime] = None
+
+class MoodIngest(BaseModel):
+    emp_id: str
+    mood_score: int              # 1-5 scale
     timestamp: Optional[datetime] = None
 
 

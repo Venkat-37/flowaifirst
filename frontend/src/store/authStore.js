@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import axios from 'axios'
-import { signInWithGoogle, signOutUser } from '../config/firebase'
+
 
 const API = import.meta.env.VITE_API_URL || ''
 
@@ -13,26 +13,25 @@ export const useAuthStore = create(
       loading: false,
       error: null,
 
-      login: async () => {
+
+      loginWithPassword: async (username, password) => {
         set({ loading: true, error: null })
         try {
-          const { idToken } = await signInWithGoogle()
-          const res = await axios.post(`${API}/api/auth/google`, { id_token: idToken })
+          const res = await axios.post(`${API}/api/auth/login`, { username, password })
           set({
             token: res.data.access_token,
             user: res.data.user,
           })
           return res.data.user
         } catch (err) {
-          // Handles Firebase errors like auth/popup-closed-by-user
-          const msg = err?.response?.data?.detail || err?.message || 'Login failed'
+          const msg = err?.response?.data?.detail || err?.message || 'Invalid credentials'
           set({ error: msg })
           throw new Error(msg)
         } finally {
-          // Always clear loading, even if popup is closed or request fails
           set({ loading: false })
         }
       },
+
 
       demoEmployeeLogin: async (empId) => {
         set({ loading: true, error: null })
@@ -53,7 +52,6 @@ export const useAuthStore = create(
       },
 
       logout: async () => {
-        await signOutUser()
         set({ user: null, token: null, error: null })
       },
 
@@ -87,3 +85,5 @@ axios.interceptors.response.use(
     return Promise.reject(err)
   }
 )
+
+export default useAuthStore

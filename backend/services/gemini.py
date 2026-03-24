@@ -34,7 +34,7 @@ async def _call_with_retry(model, prompt, max_retries: int = 2):
             last_err = e
             if attempt < max_retries:
                 wait = 2 ** (attempt + 1)           # 2 s, 4 s
-                print(f"  ⏳ Gemini 429 — retrying in {wait}s (attempt {attempt + 1}/{max_retries})")
+                print(f"  [RETRY] Gemini 429 — retrying in {wait}s (attempt {attempt + 1}/{max_retries})")
                 await asyncio.sleep(wait)
             else:
                 raise
@@ -240,7 +240,7 @@ async def generate_employee_insight(emp_id: str, stats: dict, recent_apps: list[
     rlhf_prefix = ""
     try:
         from database import get_db
-        from services.rlhf import build_calibrated_prompt_prefix
+        from services.prompt_calibration import build_calibrated_prompt_prefix
         rlhf_prefix = await build_calibrated_prompt_prefix(get_db())
     except Exception:
         pass
@@ -255,7 +255,7 @@ async def generate_employee_insight(emp_id: str, stats: dict, recent_apps: list[
         raw = re.sub(r"^```json\s*", "", raw)
         raw = re.sub(r"\s*```$", "", raw)
         parsed = json.loads(raw)
-        print("  ✓ AI insight generated via Gemini")
+        print("  [OK] AI insight generated via Gemini")
         return {
             "observations":    parsed.get("observations", [])[:3],
             "recommendations": parsed.get("recommendations", [])[:2],
@@ -270,7 +270,7 @@ async def generate_employee_insight(emp_id: str, stats: dict, recent_apps: list[
     # ── Tier 2: Groq (free Llama3) ────────────────────────────────────────────
     try:
         parsed = await _call_groq(prompt)
-        print("  ✓ AI insight generated via Groq (Llama3)")
+        print("  [OK] AI insight generated via Groq (Llama3)")
         return {
             "observations":    parsed.get("observations", [])[:3],
             "recommendations": parsed.get("recommendations", [])[:2],
@@ -283,7 +283,7 @@ async def generate_employee_insight(emp_id: str, stats: dict, recent_apps: list[
         print(f"  ⚠ Groq failed: {e2}")
 
     # ── Tier 3: Local rule-based engine (zero API) ────────────────────────────
-    print("  ℹ Using local rule-based analysis (no API needed)")
+    print("  [INFO] Using local rule-based analysis (no API needed)")
     result = _generate_local_insight(stats)
     result["privacy_audit"] = audit
     result["ai_provider"] = "Local Rule Engine"
@@ -301,7 +301,7 @@ async def generate_department_insight(dept: str, emp_stats: list[dict]) -> dict:
     rlhf_prefix = ""
     try:
         from database import get_db
-        from services.rlhf import build_calibrated_prompt_prefix
+        from services.prompt_calibration import build_calibrated_prompt_prefix
         rlhf_prefix = await build_calibrated_prompt_prefix(get_db())
     except Exception:
         pass
@@ -330,7 +330,7 @@ async def generate_department_insight(dept: str, emp_stats: list[dict]) -> dict:
         print(f"  ⚠ Groq dept failed: {e2}")
 
     # ── Tier 3: Local rules ──────────────────────────────────────────────────
-    print("  ℹ Using local rule-based dept analysis")
+    print("  [INFO] Using local rule-based dept analysis")
     result = _generate_local_dept_insight(dept, sanitised)
     result["ai_provider"] = "Local Rule Engine"
     return result
